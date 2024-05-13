@@ -49,11 +49,25 @@ class Gold18ImportCommand extends Command
                     "high" => $high[$i],
                     "low" => $low[$i],
                     "close" => $close[$i],
+                    "timestamp" => $dateTime[$i],
+                    "tarikh" => verta($dateTime[$i])->format("Y-m-d H:i:s") ?? null,
                     "date_time" => $date,
                 ]);
             }
-            \App\Models\Gold::query()
-                ->upsert($records,"date_time");
+            foreach ($records as $record) {
+                \App\Models\Instruments\Gold::query()
+                    ->updateOrCreate(["date_time" => $record["date_time"]], $record);
+            }
+//            \App\Models\Instruments\Gold::query()
+//                ->upsert($records, "date_time", [
+//                    "open",
+//                    "high",
+//                    "low",
+//                    "close",
+//                    "timestamp",
+//                    "tarikh",
+//                    "date_time",
+//                ]);
 
             $this->output->info("everything is done");
             DB::commit();

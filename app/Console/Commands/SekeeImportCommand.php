@@ -49,11 +49,17 @@ class SekeeImportCommand extends Command
                     "high" => $high[$i],
                     "low" => (integer)$low[$i],
                     "close" => $close[$i],
+                    "timestamp" => $dateTime[$i],
+                    "tarikh" => verta($dateTime[$i])->format("Y-m-d H:i:s"),
                     "date_time" => $date,
                 ]);
             }
-            \App\Models\Sekee::query()
-                ->upsert($records, "date_time");
+            foreach ($records as $record) {
+                \App\Models\Instruments\Sekee::query()
+                    ->updateOrCreate(["date_time" => $record["date_time"]], $record);
+            }
+//            \App\Models\Instruments\Sekee::query()
+//                ->upsert($records, "date_time");
 
             $this->output->info("everything is done");
             DB::commit();

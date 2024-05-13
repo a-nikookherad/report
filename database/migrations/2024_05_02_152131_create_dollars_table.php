@@ -20,8 +20,14 @@ return new class extends Migration {
                 ->nullable();
             $table->integer("close")
                 ->nullable();
+
             $table->dateTime("date_time")
-                ->index("dollar_date_and_time_index");
+                ->nullable()
+                ->index("dollar_date_time_index");
+
+            $table->string("tarikh")->nullable();
+            $table->unsignedBigInteger("timestamp")
+                ->index("dollar_timestamp_index");
             $table->timestamps();
         });
     }

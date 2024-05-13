@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -22,7 +21,12 @@ return new class extends Migration
             $table->integer("close")
                 ->nullable();
             $table->dateTime("date_time")
-                ->index("sekee_date_and_time_index");
+                ->nullable()
+                ->index("sekee_date_time_index");
+
+            $table->string("tarikh")->nullable();
+            $table->unsignedBigInteger("timestamp")
+                ->index("sekee_timestamp_index");
             $table->timestamps();
         });
     }
