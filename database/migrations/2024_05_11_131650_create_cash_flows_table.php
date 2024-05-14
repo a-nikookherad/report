@@ -29,9 +29,10 @@ return new class extends Migration {
                 ->comment("تسعیر ارز")
                 ->nullable();
 
-            $table->enum("order", [
-                1, 2, 3, 4,
-            ])
+            $table->unsignedSmallInteger("order")
+                ->nullable();
+
+            $table->json("script")
                 ->nullable();
 
             $table->unsignedBigInteger("instrument_id")

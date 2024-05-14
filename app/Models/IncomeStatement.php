@@ -15,8 +15,10 @@ class IncomeStatement extends Model
         "gross_profit",
         "operation_expenses",
         "operating_income",
+        "other_income",
         "net_income",
         "order",
+        "script",
         "instrument_id",
         "financial_period_id",
     ];

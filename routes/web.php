@@ -23,12 +23,16 @@ Route::group([
     });
 
     Route::get('/instruments', [\App\Http\Controllers\InstrumentController::class, "list"]);
-    Route::get('/instruments/add', [\App\Http\Controllers\InstrumentController::class, "add"]);
-    Route::get('/instruments/add/info', [\App\Http\Controllers\InstrumentController::class, "addInfo"])
-    ->name("instrument.add.info");
 
+    Route::get('/instruments/add', [\App\Http\Controllers\InstrumentController::class, "add"])
+        ->name("instrument.add");
     Route::post('/instruments/add', [\App\Http\Controllers\InstrumentController::class, "store"])
-        ->name("insert.instrument");
+        ->name("instrument.store");
+
+    Route::get('/instruments/add/info', [\App\Http\Controllers\InstrumentController::class, "addInfo"])
+        ->name("instrument.add.info");
+    Route::post('/instruments/add/info', [\App\Http\Controllers\InstrumentController::class, "storeInfo"])
+        ->name("instrument.add.info.store");
 
 
 });

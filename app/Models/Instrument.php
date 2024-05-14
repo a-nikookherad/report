@@ -12,6 +12,7 @@ class Instrument extends Model
     protected $fillable = [
         "name",
         "symbol",
+        "slug",
         "description",
         "industry_id",
         "group_id",

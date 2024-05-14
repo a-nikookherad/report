@@ -2,23 +2,22 @@
 
 namespace App\Tools\Excel\Facades;
 
-use App\Tools\Excel\ExcelReader;
-use Illuminate\Support\Facades\App;
+use App\Tools\Excel\ExcelService;
 use Illuminate\Support\Facades\Facade;
 
 
 /**
- * @method static ExcelReader purify(string $storagePath, string $extension = null)
+ * @method static ExcelService read(string $path)
  * @method static array rows()
- * @method static array read()
  * @method static array header()
  * @method static array body()
  * @method static array records()
+ * @method static boolean write(string $path,array $data)
  */
-class ExcelService extends Facade
+class Excel extends Facade
 {
     static public function getFacadeAccessor()
     {
-        return App::make(ExcelReader::class);
+        return ExcelService::class;
     }
 }

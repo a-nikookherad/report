@@ -2,13 +2,13 @@
 
 namespace App\Logics\ImportData;
 
-use App\Tools\Excel\ExcelReader;
+use App\Tools\Excel\ExcelService;
 use App\Tools\Excel\Interfaces\ExcelReaderInterface;
 
 class ImportInstrumentDataLogic
 {
     /**
-     * @var $excelReader ExcelReader
+     * @var $excelReader ExcelService
      */
     private $excelReader = null;
 
@@ -19,7 +19,7 @@ class ImportInstrumentDataLogic
 
     public function getBalanceSheet($storagePath, $extension)
     {
-        $file = $this->excelReader->purify($storagePath, $extension);
+        $file = $this->excelReader->path($storagePath, $extension);
         $records = $file->records();
         return $records;
     }

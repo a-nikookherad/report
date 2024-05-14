@@ -10,7 +10,7 @@
             <div class="col-sm-8">
                 <div class="bg-secondary rounded h-100 p-4">
                     <h6 class="mb-4">Add Info For Instrument</h6>
-                    <form id="add_instrument_form" method="post">
+                    <form id="add_instrument_info_form" method="post">
                         @csrf
 
                         <input type="text" name="instrument_id" hidden value="{{request("instrument_id")}}">
@@ -55,25 +55,24 @@
 
     @push("script")
         <script>
-            $('#add_instrument_form').submit(function (e) {
+            $('#add_instrument_info_form').submit(function (e) {
                 e.preventDefault();
 
                 // Serialize the form data
-                let form = $('#add_instrument_form')[0];
+                let form = $('#add_instrument_info_form')[0];
                 let formData = new FormData(form);
+                eval(formData.get("instrument_json"));
                 formData = {
-                    name: formData.get("name"),
-                    symbol: formData.get("symbol"),
-                    folder_name: formData.get("folder_name"),
-                    industry_id: formData.get("industry_id"),
-                    group_id: formData.get("group_id"),
+                    instrument_id: formData.get("instrument_id"),
+                    financial_report_type: formData.get("financial_report_type"),
+                    instrument_url: formData.get("instrument_url"),
+                    instrument_json: JSON.stringify(datasource),
                     _token: formData.get("_token"),
-                    description: formData.get("description"),
                 }
                 console.log(formData)
                 $.ajax({
                     type: 'POST',
-                    url: '{!! route('insert.instrument') !!}',
+                    url: '{!! route('instrument.add.info.store') !!}',
                     data: formData,
                     success: function (response) {
                         let message = '<div class="alert alert-success alert-dismissible fade show" role="alert"><i class="fa fa-exclamation-circle me-2"></i>' + response.message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>'

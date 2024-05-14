@@ -19,6 +19,9 @@ return new class extends Migration {
             $table->string("symbol")
                 ->nullable();
 
+            $table->string("slug")
+                ->unique();
+
             $table->string("description")
                 ->nullable();
 

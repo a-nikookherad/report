@@ -13,34 +13,39 @@ return new class extends Migration {
         Schema::create('activities', function (Blueprint $table) {
             $table->id();
 
-            $table->unsignedBigInteger("domestic_sales")
+            $table->unsignedBigInteger("this_month_domestic_sales")
                 ->nullable()
-                ->comment("فروش داخلی");
+                ->comment("فروش داخلی این ماه");
+            $table->unsignedBigInteger("total_domestic_sales_for_now")
+                ->nullable();
 
-            $table->unsignedBigInteger("export_sales")
+            $table->unsignedBigInteger("this_month_export_sales")
                 ->nullable()
-                ->comment("فروش صادراتی");
+                ->comment("فروش صادراتی این ماه");
+            $table->unsignedBigInteger("total_export_sales_for_now")
+                ->nullable();
 
             $table->unsignedBigInteger("this_month_sales")
-                ->comment("فروش ماه")
+                ->comment("فروش این ماه")
                 ->nullable();
+
+            $table->unsignedBigInteger("total_sales_for_now")
+                ->comment("کل فروش تا ماه جاری");
 
             $table->unsignedBigInteger("average_sales")
-                ->comment("میانگین فروش سال")
+                ->comment("میانگین فروش ماه")
                 ->nullable();
 
-            $table->unsignedBigInteger("total_domestic_sales")
+            $table->unsignedBigInteger("predict_year_sales")
+                ->comment("پیش بینی فروش کل سال")
                 ->nullable();
-
-            $table->unsignedBigInteger("total_export_sales")
-                ->nullable();
-
-            $table->unsignedBigInteger("total_sales")
-                ->comment("کل فروش");
 
             $table->enum("order", [
                 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
             ])
+                ->nullable();
+
+            $table->json("script")
                 ->nullable();
 
             $table->unsignedBigInteger("instrument_id")

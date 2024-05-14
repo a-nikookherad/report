@@ -21,9 +21,9 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="instrument_folder_name" class="form-label">Folder Name</label>
-                            <input type="text" class="form-control" name="folder_name" id="instrument_folder_name"
-                                   aria-describedby="emailHelp" value="{{old("folder_name")}}">
+                            <label for="instrument_slug" class="form-label">Folder Name</label>
+                            <input type="text" class="form-control" name="slug" id="instrument_slug"
+                                   aria-describedby="emailHelp" value="{{old("slug")}}">
                             <div id="emailHelp" class="form-text">please enter instrument folder name
                             </div>
                         </div>
@@ -88,7 +88,7 @@
                 formData = {
                     name: formData.get("name"),
                     symbol: formData.get("symbol"),
-                    folder_name: formData.get("folder_name"),
+                    slug: formData.get("slug"),
                     industry_id: formData.get("industry_id"),
                     group_id: formData.get("group_id"),
                     financial_period: formData.get("financial_period"),
@@ -98,7 +98,7 @@
                 console.log(formData)
                 $.ajax({
                     type: 'POST',
-                    url: '{!! route('insert.instrument') !!}',
+                    url: '{!! route('instrument.store') !!}',
                     data: formData,
                     success: function (response) {
                         let message = '<div class="alert alert-success alert-dismissible fade show" role="alert"><i class="fa fa-exclamation-circle me-2"></i>' + response.message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>'

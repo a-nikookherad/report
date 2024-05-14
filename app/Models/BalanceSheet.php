@@ -10,13 +10,17 @@ class BalanceSheet extends Model
     use HasFactory;
 
     protected $fillable = [
-        "total_current_assets",
+        "total_non_current_assets",
         "receivable_claim",
+        "total_current_assets",
         "total_assets",
         "total_current_liabilities",
+        "total_non_current_liabilities",
         "total_liabilities",
+        "accumulated_profit",
         "total_equity",
         "order",
+        "script",
         "instrument_id",
         "financial_period_id",
     ];

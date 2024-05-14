@@ -14,8 +14,9 @@ class CashFlow extends Model
         "cash_from_investing",
         "cash_from_financing",
         "foreign_exchange_effect",
-        "instrument_id",
         "order",
+        "script",
+        "instrument_id",
         "financial_period_id",
     ];
 

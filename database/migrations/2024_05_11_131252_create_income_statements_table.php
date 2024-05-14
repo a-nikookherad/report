@@ -32,13 +32,18 @@ return new class extends Migration {
                 ->comment("درآمد عملیاتی")
                 ->nullable();
 
+            $table->bigInteger("other_income")
+                ->comment("سایر درآمدهای عملیاتی")
+                ->nullable();
+
             $table->bigInteger("net_income")
                 ->comment("درآمد خالص")
                 ->nullable();
 
-            $table->enum("order", [
-                1, 2, 3, 4,
-            ])
+            $table->unsignedSmallInteger("order")
+                ->nullable();
+
+            $table->json("script")
                 ->nullable();
 
             $table->unsignedBigInteger("instrument_id")

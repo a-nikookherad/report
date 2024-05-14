@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreInstrumentReqquest extends FormRequest
+class InstrumentInfoStoreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,9 +22,7 @@ class StoreInstrumentReqquest extends FormRequest
     public function rules(): array
     {
         return [
-            "name" => "required",
-            "symbol" => "required",
-            "industry_id" => "required|exists:industries,id",
+            "instrument_json" => "nullable|json"
         ];
     }
 }

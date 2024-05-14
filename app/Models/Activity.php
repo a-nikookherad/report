@@ -10,14 +10,16 @@ class Activity extends Model
     use HasFactory;
 
     protected $fillable = [
-        "domestic_sales",
-        "export_sales",
+        "this_month_domestic_sales",
+        "total_domestic_sales_for_now",
+        "this_month_export_sales",
+        "total_export_sales_for_now",
         "this_month_sales",
-        "total_domestic_sales",
-        "total_export_sales",
-        "total_sales",
+        "total_sales_for_now",
         "average_sales",
+        "predict_year_sales",
         "order",
+        "script",
         "instrument_id",
         "financial_period_id",
     ];
