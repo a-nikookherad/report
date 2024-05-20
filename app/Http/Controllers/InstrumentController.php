@@ -4,18 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\InstrumentInfoStoreRequest;
 use App\Http\Requests\StoreInstrumentRequest;
-use App\Models\Activity;
-use App\Models\BalanceSheet;
-use App\Models\FinancialPeriod;
-use App\Models\Group;
-use App\Models\History;
-use App\Models\IncomeStatement;
-use App\Models\Industry;
-use App\Models\Instrument;
+use App\Models\Bourse\Activity;
+use App\Models\Bourse\BalanceSheet;
+use App\Models\Bourse\FinancialPeriod;
+use App\Models\Bourse\Group;
+use App\Models\Bourse\History;
+use App\Models\Bourse\IncomeStatement;
+use App\Models\Bourse\Industry;
+use App\Models\Bourse\Instrument;
+use App\Models\Instruments\Dollar;
+use App\Models\Instruments\Gold;
 use App\Tools\Excel\Facades\Excel;
 use Hekmatinasser\Verta\Facades\Verta;
-use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 
 class InstrumentController extends Controller
@@ -32,21 +34,27 @@ class InstrumentController extends Controller
     {
         $instrumentInstance = Instrument::query()
             ->where("id", request("instrument_id"))
-            ->with(["financialPeriods.incomeStatements"])
+            ->with(["financialPeriods.incomeStatements", "incomeStatement", "balanceSheet"])
             ->first();
+        $startDateTime = Date::now()->subYear()->timestamp;
+        $endDateTime = Date::now()->timestamp;
+        $url = config("financial.mofid_url") . "?" . $instrumentInstance->mofid_url;
+        $url .= "&from=" . $startDateTime;
+        $url .= "&to=" . $endDateTime;
 
         $res = \Illuminate\Support\Facades\Http::withHeaders([
             "accept" => "application/json",
             "Authorization" => "Bearer " . config("financial.mofid_token")
-        ])->get($instrumentInstance->mofid_url)
+        ])->get($url)
             ->object();
-        if (false && $res->s == "ok") {
+        if ($res->s == "ok") {
             foreach ($res->t as $index => $time) {
                 $date = \Illuminate\Support\Facades\Date::createFromTimestamp($time)->format("Y-m-d");
                 foreach ($instrumentInstance->financialPeriods as $financialPeriod) {
                     try {
                         if ($financialPeriod->start_date < $date && $financialPeriod->end_date > $date) {
-                            $shareCount = $financialPeriod->incomeStatements->where("fund", "!=", null)->last()?->fund * 1000 ?? null;
+                            $fund = $financialPeriod->incomeStatements->where("fund", "!=", null)->last()?->fund;
+                            $shareCount = !empty($fund) ? $fund / 100 : $financialPeriod->share_count;
                             $record = [
                                 "open" => $res->o[$index],
                                 "high" => $res->h[$index],
@@ -68,7 +76,7 @@ class InstrumentController extends Controller
                             ], $record);
                         }
                     } catch (\Exception $exception) {
-                        dd($exception->getMessage());
+//                        dd($exception->getMessage());
                         continue;
                     }
                 }
@@ -78,12 +86,60 @@ class InstrumentController extends Controller
         //ratio
         $historyInstance = History::query()
             ->where("instrument_id", $instrumentInstance->id)
-            ->latest()
+            ->orderBy("date_time", "desc")
             ->first();
-        $incomeStatement = $instrumentInstance->incomeStatements->where("fund", "!=", null)->first();
-        $lastIncomeStatement = $instrumentInstance->incomeStatements->last();
-        $pe = (($historyInstance->close / 10) * $incomeStatement->fund) / (($lastIncomeStatement->net_income + $lastIncomeStatement->other_income) / ($lastIncomeStatement->order*3) * 12);
-        dd($pe);
+
+        $incomeStatement = $instrumentInstance->incomeStatement;
+        $balanceSheet = $instrumentInstance->balanceSheet;
+        $lastYearLatestBalanceSheet = BalanceSheet::query()
+            ->whereHas("financialPeriod", function (Builder $query) use ($balanceSheet) {
+                return $query->where("solar_end_date", Verta::parse($balanceSheet->financialPeriod->solar_end_date)->subYear()->endYear()->format("Y-m-d"));
+            })->orderBy("order", "desc")
+            ->first();
+
+        $price = $historyInstance->close / 10 * $historyInstance->share_count;
+        $earn = $incomeStatement->net_income / $incomeStatement->order * 12;
+
+        $ratio = [];
+        //calculate P/E
+        $ratio["P/E"] = number_format($price / $earn,1);
+
+        //calculate P/S
+        $activity = Activity::query()
+            ->where("instrument_id", $instrumentInstance->id)
+            ->orderBy("id", "desc")
+            ->first();
+        $ratio["P/S"] = number_format($price / $activity->predict_year_sales,1);
+
+        //calculate P/A
+        $ratio["P/A"] = number_format($price / $balanceSheet->total_assets,1);
+
+        //calculate P/B
+        $ratio["P/B"] = number_format($price / $balanceSheet->total_equity,1);
+
+        //calculate R/A
+        $ratio["R/A"] = number_format($balanceSheet->receivable_claim / $balanceSheet->total_assets * 100) . "%";
+
+        //calculate E/E or ROE
+        $ratio["ROE"] = number_format($earn / (($lastYearLatestBalanceSheet->total_equity * 2 + $earn) / 2) * 100) . "%";
+
+        //calculate E/E or ROE
+        $ratio["ROA"] = number_format($earn / (($lastYearLatestBalanceSheet->total_assets * 2 + $earn) / 2) * 100) . "%";
+
+        //calculate IRR/XUD
+        $gold = Gold::query()
+            ->orderBy("id", "desc")
+            ->first();
+        $ratio["INS/XUD"] = ($price / $gold->close / 1000000) . " T";
+
+        //calculate IRR/USD
+        $dollar = Dollar::query()
+            ->orderBy("id", "desc")
+            ->first();
+        $ratio["TMM/USD"] = number_format($price / ($dollar->close / 10), null, null, ",");
+
+
+        dd($ratio);
         return view("contents.instruments.ratio", compact("instrumentInstance"));
     }
 
@@ -288,10 +344,10 @@ class InstrumentController extends Controller
             ->where("solar_end_date", "<=", $end_date)
             ->first();
 
+        $record = [];
         $record["instrument_id"] = $instrumentInstance->id;
         $record["financial_period_id"] = $financialPeriod->id;
         $record["script"] = json_encode($dataSource);
-        $record = [];
         if ($domesticRowNumber) {
             $record["this_month_domestic_sales"] = $data[$neededCol->first() . $domesticRowNumber] * 100000;
             $record["total_domestic_sales_for_now"] = $data[$neededCol->last() . $domesticRowNumber] * 100000;
@@ -332,17 +388,30 @@ class InstrumentController extends Controller
                 case "هزينه‏‌هاى فروش، ادارى و عمومى":
                     $operationExpensesRowNumber = trim($cel["address"], "A");
                     break;
+                case "ساير درآمدها":
+                case "سایر درآمدها و هزینه‌های عملیاتی":
+                    $otherOperatingIncomeRowNumber = trim($cel["address"], "A");
+                    break;
                 case "سود(زيان) عملياتى":
                 case "سود (زيان) عملياتي":
                     $operatingIncomeRowNumber = trim($cel["address"], "A");
                     break;
-                case "ساير درآمدها و هزينه ‏هاى عملياتى":
-                case "سایر درآمدها و هزینه‌های عملیاتی":
-                    $otherOperatingIncomeRowNumber = trim($cel["address"], "A");
+                case "هزينه‏‌هاى مالى":
+                case "هزينه‏ هاى مالى":
+                    $financialCostRowNumber = trim($cel["address"], "A");
                     break;
                 case "ساير درآمدها و هزينه ‏هاى غيرعملياتى":
+                    $otherIncomeRowNumber1 = trim($cel["address"], "A");
+                    break;
                 case "سایر درآمدها و هزینه‌های غیرعملیاتی- درآمد سرمایه‌گذاری‌ها":
-                    $otherIncomeRowNumber = trim($cel["address"], "A");
+                    $otherIncomeRowNumber2 = trim($cel["address"], "A");
+                    break;
+                case "سایر درآمدها و هزینه‌های غیرعملیاتی- اقلام متفرقه":
+                    $otherIncomeRowNumber3 = trim($cel["address"], "A");
+                    break;
+                case "سال جاری":
+                case "سال جاري":
+                    $taxRowNumber = trim($cel["address"], "A");
                     break;
                 case "سود(زيان) خالص":
                 case "سود (زيان) خالص":
@@ -350,7 +419,7 @@ class InstrumentController extends Controller
                     break;
                 case "سرمايه":
                 case "سرمایه":
-                    $shareCountRowNumber = trim($cel["address"], "A");
+                    $fundRowNumber = trim($cel["address"], "A");
                     break;
             }
             $data[$cel["address"]] = $cel["value"];
@@ -360,7 +429,7 @@ class InstrumentController extends Controller
         $neededCol = collect([]);
         foreach ($data as $coordinate => $value) {
             foreach ($cols as $col) {
-                if (!empty($value) && $coordinate == $col . $shareCountRowNumber) {
+                if (!empty($value) && $coordinate == $col . $fundRowNumber) {
                     $neededCol->push($col);
                 }
             }
@@ -374,18 +443,23 @@ class InstrumentController extends Controller
             ->first();
 
         $record = [];
-        if (!empty($shareCountRowNumber)) {
-            $shareCount = $data[$neededCol->first() . $shareCountRowNumber];
-            $financialPeriod->share_count = (int)$shareCount * 1000;
+        if (!empty($fundRowNumber)) {
+            $record["fund"] = $data[$neededCol->first() . $fundRowNumber] * 100000;
+            $financialPeriod->share_count = $record["fund"] / 100;
             $financialPeriod->save();
-            $record["fund"] = (int)$shareCount;
         }
 
-        if (!empty($netIncomeRowNumber)) {
-            $record["net_income"] = $data[$neededCol->first() . $netIncomeRowNumber] * 100000;
+        if (!empty($totalRevenueRowNumber)) {
+            $record["total_revenue"] = $data[$neededCol->first() . $totalRevenueRowNumber] * 100000;
         }
-        if (!empty($otherIncomeRowNumber)) {
-            $record["other_income"] = $data[$neededCol->first() . $otherIncomeRowNumber] * 100000;
+        if (!empty($costOfRevenueRowNumber)) {
+            $record["cost_of_revenue"] = $data[$neededCol->first() . $costOfRevenueRowNumber] * 100000;
+        }
+        if (!empty($grossProfitRowNumber)) {
+            $record["gross_profit"] = $data[$neededCol->first() . $grossProfitRowNumber] * 100000;
+        }
+        if (!empty($operationExpensesRowNumber)) {
+            $record["operation_expenses"] = $data[$neededCol->first() . $operationExpensesRowNumber] * 100000;
         }
         if (!empty($otherOperatingIncomeRowNumber)) {
             $record["other_operating_income"] = $data[$neededCol->first() . $otherOperatingIncomeRowNumber] * 100000;
@@ -393,17 +467,21 @@ class InstrumentController extends Controller
         if (!empty($operatingIncomeRowNumber)) {
             $record["operating_income"] = $data[$neededCol->first() . $operatingIncomeRowNumber] * 100000;
         }
-        if (!empty($operationExpensesRowNumber)) {
-            $record["operation_expenses"] = $data[$neededCol->first() . $operationExpensesRowNumber] * 100000;
+        if (!empty($financialCostRowNumber)) {
+            $record["financial_cost"] = $data[$neededCol->first() . $financialCostRowNumber] * 100000;
         }
-        if (!empty($grossProfitRowNumber)) {
-            $record["gross_profit"] = $data[$neededCol->first() . $grossProfitRowNumber] * 100000;
+        if (!empty($otherIncomeRowNumber1) || !empty($otherIncomeRowNumber2) || !empty($otherIncomeRowNumber3)) {
+            $otherIncome = 0;
+            !empty($otherIncomeRowNumber1) ? $otherIncome += $data[$neededCol->first() . $otherIncomeRowNumber1] : null;
+            !empty($otherIncomeRowNumber2) ? $otherIncome += $data[$neededCol->first() . $otherIncomeRowNumber2] : null;
+            !empty($otherIncomeRowNumber3) ? $otherIncome += $data[$neededCol->first() . $otherIncomeRowNumber3] : null;
+            $record["other_income"] = $otherIncome * 100000;
         }
-        if (!empty($costOfRevenueRowNumber)) {
-            $record["cost_of_revenue"] = $data[$neededCol->first() . $costOfRevenueRowNumber] * 100000;
+        if (!empty($taxRowNumber)) {
+            $record["tax"] = $data[$neededCol->first() . $taxRowNumber] * 100000;
         }
-        if (!empty($totalRevenueRowNumber)) {
-            $record["total_revenue"] = $data[$neededCol->first() . $totalRevenueRowNumber] * 100000;
+        if (!empty($netIncomeRowNumber)) {
+            $record["net_income"] = $data[$neededCol->first() . $netIncomeRowNumber] * 100000;
         }
 
 
@@ -435,6 +513,13 @@ class InstrumentController extends Controller
                 case "جمع دارایی‌ها":
                     $totalAssetsRowNumber = trim($cel["address"], "A");
                     break;
+                case "سرمايه":
+                    $fundRowNumber = trim($cel["address"], "A");
+                    break;
+                case "سود(زيان) انباشته":
+                case "سود (زيان) انباشته":
+                    $accumulateProfitRowNumber = trim($cel["address"], "A");
+                    break;
                 case "جمع حقوق مالکانه":
                     $totalEquityRowNumber = trim($cel["address"], "A");
                     break;
@@ -450,10 +535,7 @@ class InstrumentController extends Controller
                 case "جمع بدهی‌ها":
                     $totalLiabilitiesRowNumber = trim($cel["address"], "A");
                     break;
-                case "سود(زيان) انباشته":
-                case "سود (زيان) انباشته":
-                    $accumulateProfitRowNumber = trim($cel["address"], "A");
-                    break;
+
             }
             $data[$cel["address"]] = $cel["value"];
         }
@@ -469,10 +551,6 @@ class InstrumentController extends Controller
         }
 
         $record = [];
-        if (!empty($totalAssetsRowNumber)) {
-            $record["total_assets"] = $data[$neededCol->first() . $totalAssetsRowNumber] * 100000;
-        }
-
         if (!empty($totalNonCurrentAssetsRowNumber)) {
             $record["total_non_current_assets"] = $data[$neededCol->first() . $totalNonCurrentAssetsRowNumber] * 100000;
         }
@@ -482,20 +560,26 @@ class InstrumentController extends Controller
         if (!empty($totalCurrentAssetsRowNumber)) {
             $record["total_current_assets"] = $data[$neededCol->first() . $totalCurrentAssetsRowNumber] * 100000;
         }
-        if (!empty($totalCurrentLiabilitiesRowNumber)) {
-            $record["total_current_liabilities"] = $data[$neededCol->first() . $totalCurrentLiabilitiesRowNumber] * 100000;
+        if (!empty($totalAssetsRowNumber)) {
+            $record["total_assets"] = $data[$neededCol->first() . $totalAssetsRowNumber] * 100000;
         }
-        if (!empty($totalNonCurrentLiabilitiesRowNumber)) {
-            $record["total_non_current_liabilities"] = $data[$neededCol->first() . $totalNonCurrentLiabilitiesRowNumber] * 100000;
-        }
-        if (!empty($totalLiabilitiesRowNumber)) {
-            $record["total_liabilities"] = $data[$neededCol->first() . $totalLiabilitiesRowNumber] * 100000;
+        if (!empty($fundRowNumber)) {
+            $record["fund"] = $data[$neededCol->first() . $fundRowNumber] * 100000;
         }
         if (!empty($accumulateProfitRowNumber)) {
             $record["accumulated_profit"] = $data[$neededCol->first() . $accumulateProfitRowNumber] * 100000;
         }
         if (!empty($totalEquityRowNumber)) {
             $record["total_equity"] = $data[$neededCol->first() . $totalEquityRowNumber] * 100000;
+        }
+        if (!empty($totalNonCurrentLiabilitiesRowNumber)) {
+            $record["total_non_current_liabilities"] = $data[$neededCol->first() . $totalNonCurrentLiabilitiesRowNumber] * 100000;
+        }
+        if (!empty($totalCurrentLiabilitiesRowNumber)) {
+            $record["total_current_liabilities"] = $data[$neededCol->first() . $totalCurrentLiabilitiesRowNumber] * 100000;
+        }
+        if (!empty($totalLiabilitiesRowNumber)) {
+            $record["total_liabilities"] = $data[$neededCol->first() . $totalLiabilitiesRowNumber] * 100000;
         }
 
         $start_date = Verta::parse($dataSource["yearEndToDate"])->subDays(365)->format("Y-m-d");

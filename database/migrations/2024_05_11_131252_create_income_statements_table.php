@@ -25,23 +25,31 @@ return new class extends Migration {
                 ->nullable();
 
             $table->bigInteger("operation_expenses")
-                ->comment("هزینه عملیاتی")
-                ->nullable();
-
-            $table->bigInteger("operating_income")
-                ->comment("درآمد عملیاتی")
+                ->comment("هزینه های فروش، ادارى و عمومى")
                 ->nullable();
 
             $table->bigInteger("other_operating_income")
                 ->comment("سایر درآمدهای عملیاتی")
                 ->nullable();
 
+            $table->bigInteger("operating_income")
+                ->comment("سود عملیاتی")
+                ->nullable();
+
+            $table->bigInteger("financial_cost")
+                ->comment("هزینه های مالی")
+                ->nullable();
+
             $table->bigInteger("other_income")
                 ->comment("سایر درآمدهای غیر عملیاتی")
                 ->nullable();
 
+            $table->bigInteger("tax")
+                ->comment("مالیات بر درآمد")
+                ->nullable();
+
             $table->bigInteger("net_income")
-                ->comment("درآمد خالص")
+                ->comment("سود خالص")
                 ->nullable();
 
             $table->bigInteger("fund")

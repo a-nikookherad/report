@@ -29,16 +29,8 @@ return new class extends Migration {
                 ->comment("جمع دارایی ها")
                 ->nullable();
 
-            $table->bigInteger("total_current_liabilities")
-                ->comment("مجموع بدهی های جاری")
-                ->nullable();
-
-            $table->bigInteger("total_non_current_liabilities")
-                ->comment("مجموع بدهی های غیرجاری")
-                ->nullable();
-
-            $table->bigInteger("total_liabilities")
-                ->comment("مجموع بدهی های")
+            $table->bigInteger("fund")
+                ->comment("سرمایه")
                 ->nullable();
 
             $table->bigInteger("accumulated_profit")
@@ -47,6 +39,18 @@ return new class extends Migration {
 
             $table->unsignedBigInteger("total_equity")
                 ->comment("مجموع حقوق مالکانه")
+                ->nullable();
+
+            $table->bigInteger("total_non_current_liabilities")
+                ->comment("مجموع بدهی های غیرجاری")
+                ->nullable();
+
+            $table->bigInteger("total_current_liabilities")
+                ->comment("مجموع بدهی های جاری")
+                ->nullable();
+
+            $table->bigInteger("total_liabilities")
+                ->comment("مجموع بدهی های")
                 ->nullable();
 
             $table->unsignedSmallInteger("order")

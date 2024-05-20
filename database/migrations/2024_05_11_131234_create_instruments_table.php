@@ -23,7 +23,7 @@ return new class extends Migration {
                 ->unique();
 
             $table->string("mofid_url")
-                ->unique();
+                ->nullable();
 
             $table->string("description")
                 ->nullable();

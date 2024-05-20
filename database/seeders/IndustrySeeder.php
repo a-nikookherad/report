@@ -2,8 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Industry;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Bourse\Industry;
 use Illuminate\Database\Seeder;
 
 class IndustrySeeder extends Seeder

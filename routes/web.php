@@ -3,12 +3,12 @@
 use Illuminate\Support\Facades\Route;
 
 Route::get("", function () {
-    $res = \Illuminate\Support\Facades\Http::withHeaders([
-        "accept" => "application/json",
-        "Authorization" => "Bearer " . config("financial.mofid_token")
-    ])->get(\App\Models\Instrument::query()->where("slug", "fameli")->first()->mofid_url);
-    $res->object();
-    dd();
+//    $res = \Illuminate\Support\Facades\Http::withHeaders([
+//        "accept" => "application/json",
+//        "Authorization" => "Bearer " . config("financial.mofid_token")
+//    ])->get(\App\Models\Bourse\Instrument::query()->where("slug", "fameli")->first()->mofid_url);
+//    $res->object();
+    dd("this is test page");
 });
 Route::group([
     "prefix" => "dashboard"

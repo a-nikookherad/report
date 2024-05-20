@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\FinancialPeriod;
-use App\Models\Group;
-use App\Models\Industry;
-use App\Models\Instrument;
+use App\Models\Bourse\FinancialPeriod;
+use App\Models\Bourse\Group;
+use App\Models\Bourse\Industry;
+use App\Models\Bourse\Instrument;
 use Hekmatinasser\Verta\Facades\Verta;
 use Illuminate\Database\Seeder;
 
@@ -21,18 +21,29 @@ class InstrumentSeeder extends Seeder
                 "name" => "فولاد مبارکه اصفهان",
                 "slug" => "folad",
                 "symbol" => "فولاد",
+                "mofid_url" => "https://api-mts.orbis.easytrader.ir/chart/api/datafeed/history?symbol=IRO1FOLD0001%3A1&resolution=1D&from=1669334400&to=1716163200&countback=388",
                 "financial_period" => "1398-12-29",
                 "group_id" => Group::where("name", "فلزات اساسی")->first()->id ?? null,
                 "industry_id" => Industry::where("name", "فلزات اساسی")->first()->id ?? null,
                 "description" => "",
             ],
+//            [
+//                "name" => "پویا زرکان آق دره",
+//                "slug" => "fazar",
+//                "symbol" => "فزر",
+//                "financial_period" => "1398-09-30",
+//                "group_id" => null,
+//                "industry_id" => Industry::where("name", "استخراج کانه های فلزی")->first()->id,
+//                "description" => "",
+//            ],
             [
-                "name" => "پویا زرکان آق دره",
-                "slug" => "fazar",
-                "symbol" => "فزر",
-                "financial_period" => "1398-09-30",
-                "group_id" => null,
-                "industry_id" => Industry::where("name", "استخراج کانه های فلزی")->first()->id,
+                "name" => "ملی صنایع مس ایران",
+                "slug" => "fameli",
+                "symbol" => "فملی",
+                "mofid_url" => "Request URL: https://api-mts.orbis.easytrader.ir/chart/api/datafeed/history?symbol=IRO1MSMI0001%3A1&resolution=1D&from=1645142400&to=1716163200&countback=588",
+                "financial_period" => "1398-12-29",
+                "group_id" => Group::where("name", "فلزات اساسی")->first()->id,
+                "industry_id" => Industry::where("name", "فلزات اساسی")->first()->id,
                 "description" => "",
             ],
             [
@@ -45,29 +56,20 @@ class InstrumentSeeder extends Seeder
                 "description" => "",
             ],
             [
-                "name" => "ملی صنایع مس ایران",
-                "slug" => "fameli",
-                "symbol" => "فملی",
-                "financial_period" => "1398-12-29",
-                "group_id" => null,
-                "industry_id" => Industry::where("name", "فلزات اساسی")->first()->id,
-                "description" => "",
-            ],
-            [
                 "name" => "مس شهید باهنر",
                 "slug" => "fabahonar",
                 "symbol" => "فباهنر",
                 "financial_period" => "1398-12-29",
-                "group_id" => null,
+                "group_id" => Group::where("name", "فلزات اساسی")->first()->id,
                 "industry_id" => Industry::where("name", "فلزات اساسی")->first()->id,
                 "description" => "",
             ],
             [
                 "name" => "پارس فولاد سبزوار",
-                "slug" => "fasabzevar",
+                "slug" => "fesabzevar",
                 "symbol" => "فسبزوار",
                 "financial_period" => "1398-09-30",
-                "group_id" => null,
+                "group_id" => Group::where("name", "فلزات اساسی")->first()->id,
                 "industry_id" => Industry::where("name", "فلزات اساسی")->first()->id,
                 "description" => "",
             ],
@@ -76,7 +78,7 @@ class InstrumentSeeder extends Seeder
                 "slug" => "hormoz",
                 "symbol" => "هرمز",
                 "financial_period" => "1398-12-29",
-                "group_id" => null,
+                "group_id" => Group::where("name", "فلزات اساسی")->first()->id,
                 "industry_id" => Industry::where("name", "فلزات اساسی")->first()->id,
                 "description" => "",
             ],

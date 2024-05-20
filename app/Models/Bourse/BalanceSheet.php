@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Bourse;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -19,6 +19,7 @@ class BalanceSheet extends Model
         "total_liabilities",
         "accumulated_profit",
         "total_equity",
+        "fund",
         "order",
         "script",
         "instrument_id",

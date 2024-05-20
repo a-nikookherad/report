@@ -1,24 +1,13 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Bourse;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class CashFlow extends Model
+class Report extends Model
 {
     use HasFactory;
-
-    protected $fillable = [
-        "net_income",
-        "cash_from_investing",
-        "cash_from_financing",
-        "foreign_exchange_effect",
-        "order",
-        "script",
-        "instrument_id",
-        "financial_period_id",
-    ];
 
     public function instrument()
     {

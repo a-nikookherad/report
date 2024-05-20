@@ -1,25 +1,20 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Bourse;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class IncomeStatement extends Model
+class CashFlow extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        "total_revenue",
-        "cost_of_revenue",
-        "gross_profit",
-        "operation_expenses",
-        "operating_income",
-        "other_operating_income",
-        "other_income",
         "net_income",
+        "cash_from_investing",
+        "cash_from_financing",
+        "foreign_exchange_effect",
         "order",
-        "fund",
         "script",
         "instrument_id",
         "financial_period_id",

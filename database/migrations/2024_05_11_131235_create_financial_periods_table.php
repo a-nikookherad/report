@@ -30,6 +30,7 @@ return new class extends Migration {
                 ->nullable();
 
             $table->boolean("close")
+                ->comment("وضعیت دوره مالی")
                 ->default(false);
 
             $table->float("industry_pe")

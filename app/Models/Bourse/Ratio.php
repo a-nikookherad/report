@@ -1,13 +1,29 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Bourse;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Report extends Model
+class Ratio extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        "p_e",
+        "p_s",
+        "p_a",
+        "p_b",
+        "r_a",
+        "nav",
+        "usd_nav",
+        "peg",
+        "roe",
+        "roa",
+        "instrument_id",
+        "financial_period_id",
+        "fis",
+    ];
 
     public function instrument()
     {

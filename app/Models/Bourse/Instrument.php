@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Bourse;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -39,9 +39,21 @@ class Instrument extends Model
         return $this->hasMany(BalanceSheet::class, "instrument_id");
     }
 
+    public function balanceSheet()
+    {
+        return $this->hasOne(BalanceSheet::class, "instrument_id")
+            ->latest();
+    }
+
     public function incomeStatements()
     {
         return $this->hasMany(IncomeStatement::class, "instrument_id");
+    }
+
+    public function incomeStatement()
+    {
+        return $this->hasOne(IncomeStatement::class, "instrument_id")
+            ->latest();
     }
 
     public function cashFlows()
