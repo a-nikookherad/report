@@ -14,6 +14,7 @@ class Instrument extends Model
         "symbol",
         "slug",
         "description",
+        "mofid_url",
         "industry_id",
         "group_id",
     ];
@@ -56,5 +57,10 @@ class Instrument extends Model
     public function ratios()
     {
         return $this->hasMany(Ratio::class, "instrument_id");
+    }
+
+    public function histories()
+    {
+        return $this->hasMany(History::class, "instrument_id");
     }
 }

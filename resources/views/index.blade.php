@@ -64,7 +64,7 @@
                 </div>
             </div>
             <div class="navbar-nav w-100">
-                <a href="index.blade.php" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                <a href="{{url("dashboard")}}" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
                 <div class="nav-item dropdown">
                     <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i
                             class="fa fa-laptop me-2"></i>Instruments</a>
@@ -74,12 +74,12 @@
                         {{--                        <a href="../darkpan-1.0.0/element.html" class="dropdown-item">Other Elements</a>--}}
                     </div>
                 </div>
-                <a href="../darkpan-1.0.0/widget.html" class="nav-item nav-link"><i
+                <a href="{{url("widget")}}" class="nav-item nav-link"><i
                         class="fa fa-th me-2"></i>Widgets</a>
-                <a href="../darkpan-1.0.0/form.html" class="nav-item nav-link"><i class="fa fa-keyboard me-2"></i>Forms</a>
-                <a href="../darkpan-1.0.0/table.html" class="nav-item nav-link"><i
+                <a href="{{url("form")}}" class="nav-item nav-link"><i class="fa fa-keyboard me-2"></i>Forms</a>
+                <a href="{{url("table")}}" class="nav-item nav-link"><i
                         class="fa fa-table me-2"></i>Tables</a>
-                <a href="../darkpan-1.0.0/chart.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Charts</a>
+                <a href="{{url("chart")}}" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Charts</a>
                 <div class="nav-item dropdown">
                     <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i
                             class="far fa-file-alt me-2"></i>Pages</a>

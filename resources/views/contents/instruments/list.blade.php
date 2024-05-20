@@ -30,13 +30,15 @@
                                     <td>{{$instrument->industry->name}}</td>
                                     <td>{{$instrument->description}}</td>
                                     <td>
-                                        <button type="button" class="btn btn-square btn-outline-danger m-2"><i
-                                                class="fa fa-archive"></i></button>
+                                        <a href="{{route("instrument.ratio",["instrument_id"=>$instrument->id])}}">
+                                            <button type="button" class="btn btn-square btn-outline-info m-2"><i
+                                                    class="fa fa-chart-area"></i></button>
+                                        </a>
                                         <button type="button" class="btn btn-square btn-outline-success m-2"><i
                                                 class="fa fa-edit"></i></button>
                                         <a href="{{route("instrument.add.info",["instrument_id"=>$instrument->id])}}">
-                                            <button type="button" class="btn btn-square btn-outline-info m-2"><i
-                                                    class="fa fa-address-book"></i></button>
+                                            <button type="button" class="btn btn-square btn-outline-warning m-2"><i
+                                                    class="fa fa-address-card"></i></button>
                                         </a>
                                     </td>
                                 </tr>

@@ -3,24 +3,19 @@
 use Illuminate\Support\Facades\Route;
 
 Route::get("", function () {
-    $jsonFile = file_get_contents(storage_path("instruments/folad/json/1402-06-31.json"));
-//    dd($jsonFile);
-    $records = json_decode($jsonFile, true);
-    dd($records);
-
-    $logic = resolve(\App\Tools\Excel\ExcelWriter::class);
-    $logic->write("");
-    dd("done");
-    $logic = resolve(\App\Logics\ImportData\ImportInstrumentDataLogic::class);
-    $records = $logic->getBalanceSheet("instruments/folad/folad.xls", "xls");
-    dd($records);
+    $res = \Illuminate\Support\Facades\Http::withHeaders([
+        "accept" => "application/json",
+        "Authorization" => "Bearer " . config("financial.mofid_token")
+    ])->get(\App\Models\Instrument::query()->where("slug", "fameli")->first()->mofid_url);
+    $res->object();
+    dd();
 });
 Route::group([
     "prefix" => "dashboard"
 ], function () {
     Route::get('/', function () {
         return view('contents.dashboard');
-    });
+    })->name("dashboard");
 
     Route::get('/instruments', [\App\Http\Controllers\InstrumentController::class, "list"]);
 
@@ -34,7 +29,8 @@ Route::group([
     Route::post('/instruments/add/info', [\App\Http\Controllers\InstrumentController::class, "storeInfo"])
         ->name("instrument.add.info.store");
 
-
+    Route::get('/instruments/{instrument_id}/ratio', [\App\Http\Controllers\InstrumentController::class, "ratio"])
+        ->name("instrument.ratio");
 });
 
 Route::group([
@@ -46,29 +42,29 @@ Route::group([
 
     Route::get('chart', function () {
         return view('contents.templates.chart');
-    });
+    })->name("chart");
 
     Route::get('table', function () {
         return view('contents.templates.table');
-    });
+    })->name("table");
 
     Route::get('widget', function () {
         return view('contents.templates.widget');
-    });
+    })->name("widget");
 
     Route::get('button', function () {
         return view('contents.templates.button');
-    });
+    })->name("button");
 
     Route::get('element', function () {
         return view('contents.templates.element');
-    });
+    })->name("element");
 
     Route::get('typography', function () {
         return view('contents.templates.typography');
-    });
+    })->name("typography");
 
     Route::get('blank', function () {
         return view('contents.templates.blank');
-    });
+    })->name("blank");
 });

@@ -22,6 +22,9 @@ return new class extends Migration {
             $table->string("slug")
                 ->unique();
 
+            $table->string("mofid_url")
+                ->unique();
+
             $table->string("description")
                 ->nullable();
 

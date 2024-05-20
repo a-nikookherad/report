@@ -5,24 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class IncomeStatement extends Model
+class History extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        "total_revenue",
-        "cost_of_revenue",
-        "gross_profit",
-        "operation_expenses",
-        "operating_income",
-        "other_operating_income",
-        "other_income",
-        "net_income",
-        "order",
-        "fund",
-        "script",
-        "instrument_id",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume",
+        "share_count",
+        "tarikh",
+        "date_time",
+        "timestamp",
         "financial_period_id",
+        "instrument_id",
     ];
 
     public function instrument()
