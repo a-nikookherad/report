@@ -47,7 +47,7 @@ class InstrumentController extends Controller
             "Authorization" => "Bearer " . config("financial.mofid_token")
         ])->get($url)
             ->object();
-        if ($res->s == "ok") {
+        if (!empty($res->s) && $res->s == "ok") {
             foreach ($res->t as $index => $time) {
                 $date = \Illuminate\Support\Facades\Date::createFromTimestamp($time)->format("Y-m-d");
                 foreach ($instrumentInstance->financialPeriods as $financialPeriod) {
@@ -81,6 +81,8 @@ class InstrumentController extends Controller
                     }
                 }
             }
+        } else {
+            dd("please set valid mofid token");
         }
 
         //ratio
@@ -101,24 +103,27 @@ class InstrumentController extends Controller
         $earn = $incomeStatement->net_income / $incomeStatement->order * 12;
 
         $ratio = [];
+        $ratio["gross"] = number_format($incomeStatement->gross_profit / $incomeStatement->total_revenue * 100) . "%";
+        $ratio["net"] = number_format($incomeStatement->net_income / $incomeStatement->total_revenue * 100) . "%";
+
         //calculate P/E
-        $ratio["P/E"] = number_format($price / $earn,1);
+        $ratio["P/E"] = number_format($price / $earn, 1);
 
         //calculate P/S
         $activity = Activity::query()
             ->where("instrument_id", $instrumentInstance->id)
             ->orderBy("id", "desc")
             ->first();
-        $ratio["P/S"] = number_format($price / $activity->predict_year_sales,1);
+        $ratio["P/S"] = number_format($price / $activity->predict_year_sales, 1);
 
         //calculate P/A
-        $ratio["P/A"] = number_format($price / $balanceSheet->total_assets,1);
+        $ratio["P/A"] = number_format($price / $balanceSheet->total_assets, 1);
 
         //calculate P/B
-        $ratio["P/B"] = number_format($price / $balanceSheet->total_equity,1);
+        $ratio["P/B"] = number_format($price / $balanceSheet->total_equity, 1);
 
         //calculate R/A
-        $ratio["R/A"] = number_format($balanceSheet->receivable_claim / $balanceSheet->total_assets * 100) . "%";
+        $ratio["RC/A"] = number_format($balanceSheet->receivable_claim / $balanceSheet->total_assets * 100) . "%";
 
         //calculate E/E or ROE
         $ratio["ROE"] = number_format($earn / (($lastYearLatestBalanceSheet->total_equity * 2 + $earn) / 2) * 100) . "%";
@@ -130,13 +135,13 @@ class InstrumentController extends Controller
         $gold = Gold::query()
             ->orderBy("id", "desc")
             ->first();
-        $ratio["INS/XUD"] = ($price / $gold->close / 1000000) . " T";
+        $ratio["P/XUD"] = ($price / $gold->close / 1000000) . " T";
 
         //calculate IRR/USD
         $dollar = Dollar::query()
             ->orderBy("id", "desc")
             ->first();
-        $ratio["TMM/USD"] = number_format($price / ($dollar->close / 10), null, null, ",");
+        $ratio["P/USD"] = number_format($price / ($dollar->close / 10), null, null, ",");
 
 
         dd($ratio);
@@ -445,8 +450,10 @@ class InstrumentController extends Controller
         $record = [];
         if (!empty($fundRowNumber)) {
             $record["fund"] = $data[$neededCol->first() . $fundRowNumber] * 100000;
-            $financialPeriod->share_count = $record["fund"] / 100;
-            $financialPeriod->save();
+            if ($financialPeriod->share_count < ($record["fund"] / 100)) {
+                $financialPeriod->share_count = $record["fund"] / 100;
+                $financialPeriod->save();
+            }
         }
 
         if (!empty($totalRevenueRowNumber)) {
