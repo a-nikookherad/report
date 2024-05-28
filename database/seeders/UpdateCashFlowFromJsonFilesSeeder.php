@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Logics\Bourse\Normalize\IncomeStatementDataNormalizeLogic;
-use App\Models\Bourse\IncomeStatement;
+use App\Logics\Bourse\Normalize\CashFlowDataNormalizeLogic;
+use App\Models\Bourse\CashFlow;
 use App\Models\Bourse\Instrument;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\App;
 
@@ -25,18 +24,18 @@ class UpdateCashFlowFromJsonFilesSeeder extends Seeder
             if (!$instrumentInstance) {
                 continue;
             }
-            $incomeStatementsDataSources = glob($jsonFile . DIRECTORY_SEPARATOR . "json" . DIRECTORY_SEPARATOR . "income_statement" . DIRECTORY_SEPARATOR . "*");
-            foreach ($incomeStatementsDataSources as $incomeStatementsDataSource) {
-                if (!file_exists($incomeStatementsDataSource)) {
+            $cashFlowDataSources = glob($jsonFile . DIRECTORY_SEPARATOR . "json" . DIRECTORY_SEPARATOR . "cash_flow" . DIRECTORY_SEPARATOR . "*");
+            foreach ($cashFlowDataSources as $cashFlowDataSource) {
+                if (!file_exists($cashFlowDataSource)) {
                     continue;
                 }
-                $dataSource = json_decode(file_get_contents($incomeStatementsDataSource), true);
-                $incomeStatementLogic = App::make(IncomeStatementDataNormalizeLogic::class, [
+                $dataSource = json_decode(file_get_contents($cashFlowDataSource), true);
+                $cashFlowLogic = App::make(CashFlowDataNormalizeLogic::class, [
                     "dataSource" => $dataSource
                 ]);
-                $record = $incomeStatementLogic->normalize();
+                $record = $cashFlowLogic->normalize();
                 $record["instrument_id"] = $instrumentInstance->id;
-                IncomeStatement::query()
+                CashFlow::query()
                     ->updateOrCreate(["financial_period_id" => $record["financial_period_id"], "order" => $record["order"]], $record);
             }
         }

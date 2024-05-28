@@ -10,10 +10,15 @@ class CashFlow extends Model
     use HasFactory;
 
     protected $fillable = [
-        "net_profit",
+        "cash_from_operation",
         "cash_from_investing",
+        "receipts_from_facilities",
+        "payments_for_principle_facilities",
+        "payments_for_interest_facilities",
+        "dividend_payments",
         "cash_from_financing",
         "foreign_exchange_effect",
+        "net_income_cash",
         "order",
         "script",
         "instrument_id",

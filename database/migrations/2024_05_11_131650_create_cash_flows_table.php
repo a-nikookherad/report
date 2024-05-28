@@ -48,6 +48,10 @@ return new class extends Migration {
                 ->comment("تسعیر ارز")
                 ->nullable();
 
+            $table->bigInteger("net_income_cash")
+                ->comment("خالص افزايش (کاهش) در موجودي نقد")
+                ->nullable();
+
             $table->unsignedSmallInteger("order")
                 ->nullable();
 

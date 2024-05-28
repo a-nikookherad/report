@@ -4,9 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\InstrumentInfoStoreRequest;
 use App\Http\Requests\StoreInstrumentRequest;
+use App\Logics\Bourse\Normalize\ActivityDataNormalizeLogic;
+use App\Logics\Bourse\Normalize\BalanceSheetDataNormalizeLogic;
+use App\Logics\Bourse\Normalize\CashFlowDataNormalizeLogic;
 use App\Logics\Bourse\Normalize\IncomeStatementDataNormalizeLogic;
 use App\Models\Bourse\Activity;
 use App\Models\Bourse\BalanceSheet;
+use App\Models\Bourse\CashFlow;
 use App\Models\Bourse\FinancialPeriod;
 use App\Models\Bourse\Group;
 use App\Models\Bourse\History;
@@ -221,43 +225,15 @@ class InstrumentController extends Controller
 
             //Make xlsx file
             $xlsxFile = $filePath . "/xlsx/" . $request->financial_report_type . "/" . $date . ".xlsx";
-            $data = [];
-            $cols = [
-                "B",
-                "C",
-                "D",
-                "E",
-                "F",
-                "G",
-                "H",
-                "I",
-                "J",
-                "K",
-                "L",
-                "M",
-                "N",
-                "O",
-                "P",
-                "Q",
-                "R",
-                "S",
-                "T",
-                "U",
-                "V",
-                "W",
-                "X",
-                "Y",
-                "Z",
-            ];
 
             if ($request->financial_report_type == "activity") {
-                $this->makeXlsxFromActivityAndStoreInDatabase($dataSource, $data, $xlsxFile, $cols, $instrumentInstance);
+                $this->makeXlsxFromActivityAndStoreInDatabase($dataSource, $instrumentInstance, $xlsxFile);
             } elseif ($request->financial_report_type == "balance_sheet") {
-                $this->makeXlsxFromBalanceSheetAndStoreInDatabase($dataSource, $data, $xlsxFile, $cols, $instrumentInstance);
+                $this->makeXlsxFromBalanceSheetAndStoreInDatabase($dataSource, $instrumentInstance, $xlsxFile);
             } elseif ($request->financial_report_type == "income_statement") {
                 $this->makeXlsxFromIncomeStatementAndStoreInDatabase($dataSource, $instrumentInstance, $xlsxFile);
             } elseif ($request->financial_report_type == "cash_flow") {
-
+                $this->makeXlsxFromCashFlowAndStoreInDatabase($dataSource, $instrumentInstance, $xlsxFile);
             }
         }
         return response()->json([
@@ -310,68 +286,17 @@ class InstrumentController extends Controller
         }
     }
 
-    private function makeXlsxFromActivityAndStoreInDatabase(mixed $dataSource, array $data, string $xlsxFile, array $cols, $instrumentInstance)
+    private function makeXlsxFromActivityAndStoreInDatabase(mixed $dataSource, $instrumentInstance, string $xlsxFile)
     {
-        foreach ($dataSource["sheets"][0]["tables"][0]["cells"] as $cel) {
-            switch ($cel["value"]) {
-                case "جمع فروش داخلی":
-                    $domesticRowNumber = trim($cel["address"], "A");
-                    break;
-                case "جمع فروش صادراتی":
-                    $exportRowNumber = trim($cel["address"], "A");
-                    break;
-                case "جمع":
-                    $totalRowNumber = trim($cel["address"], "A");
-            }
-            $data[$cel["address"]] = $cel["value"];
-        }
-        Excel::write($xlsxFile, $data);
+        $activityLogic = resolve(ActivityDataNormalizeLogic::class, [
+            "dataSource" => $dataSource
+        ]);
 
-        //insert into database
-        $neededCol = collect([]);
-        foreach ($data as $coordinate => $value) {
-            foreach ($cols as $col) {
-                if (!empty($value) && $coordinate == $col . $totalRowNumber) {
-                    $neededCol->push($col);
-                }
-            }
-        }
-
-        if ($neededCol->count() == 5) {
-            $neededCol->forget([0, 1, 4]);
-        } elseif ($neededCol->count() == 3) {
-            $neededCol->forget([2]);
-        }
-
-        $start_date = Verta::parse($dataSource["yearEndToDate"])->subDays(365)->format("Y-m-d");
-        $end_date = Verta::parse($dataSource["yearEndToDate"])->format("Y-m-d");
-        $financialPeriod = FinancialPeriod::query()
-            ->where("solar_start_date", ">=", $start_date)
-            ->where("solar_end_date", "<=", $end_date)
-            ->first();
-
-        $record = [];
+        $record = $activityLogic->normalize();
         $record["instrument_id"] = $instrumentInstance->id;
-        $record["financial_period_id"] = $financialPeriod->id;
-        $record["script"] = json_encode($dataSource);
-        if ($domesticRowNumber) {
-            $record["this_month_domestic_sales"] = $data[$neededCol->first() . $domesticRowNumber] * 100000;
-            $record["total_domestic_sales_for_now"] = $data[$neededCol->last() . $domesticRowNumber] * 100000;
-        }
-        if ($exportRowNumber) {
-            $record["this_month_export_sales"] = $data[$neededCol->first() . $exportRowNumber] * 100000;
-            $record["total_export_sales_for_now"] = $data[$neededCol->last() . $exportRowNumber] * 100000;
-        }
-
-        $record["this_month_sales"] = $data[$neededCol->first() . $totalRowNumber] * 100000;
-        $record["total_sales_for_now"] = $data[$neededCol->last() . $totalRowNumber] * 100000;
-
-        $record["order"] = (int)Verta::parse($dataSource["periodEndToDate"])->format("m");
-
-        $record["average_sales"] = $record["total_sales_for_now"] / $record["order"];
-        $record["predict_year_sales"] = $record["total_sales_for_now"] / $record["order"] * 12;
         Activity::query()
             ->updateOrCreate(["order" => $record["order"], "financial_period_id" => $record["financial_period_id"]], $record);
+        Excel::write($xlsxFile, $activityLogic->getData());
     }
 
     private function makeXlsxFromIncomeStatementAndStoreInDatabase(mixed $dataSource, $instrumentInstance, string $xlsxFile)
@@ -388,107 +313,31 @@ class InstrumentController extends Controller
         Excel::write($xlsxFile, $incomeStatementLogic->getData());
     }
 
-    private function makeXlsxFromBalanceSheetAndStoreInDatabase(mixed $dataSource, array $data, string $xlsxFile, array $cols, $instrumentInstance): void
+    private function makeXlsxFromBalanceSheetAndStoreInDatabase(mixed $dataSource, $instrumentInstance, string $xlsxFile): void
     {
-        foreach ($dataSource["sheets"][0]["tables"][0]["cells"] as $cel) {
-            switch ($cel["value"]) {
-                case "جمع دارايي‌هاي غيرجاري":
-                case "جمع دارایی‌های غیرجاری":
-                    $totalNonCurrentAssetsRowNumber = trim($cel["address"], "A");
-                    break;
-                case "دريافتني‌هاي تجاري و ساير دريافتني‌ها":
-                case "دریافتنی‌های تجاری و سایر دریافتنی‌ها":
-                    $receivableClaimRowNumber = trim($cel["address"], "A");
-                    break;
-                case "جمع دارايي‌هاي جاري":
-                case "جمع دارایی‌های جاری":
-                    $totalCurrentAssetsRowNumber = trim($cel["address"], "A");
-                    break;
-                case "جمع دارايي‌ها":
-                case "جمع دارایی‌ها":
-                    $totalAssetsRowNumber = trim($cel["address"], "A");
-                    break;
-                case "سرمايه":
-                    $fundRowNumber = trim($cel["address"], "A");
-                    break;
-                case "سود(زيان) انباشته":
-                case "سود (زيان) انباشته":
-                    $accumulateProfitRowNumber = trim($cel["address"], "A");
-                    break;
-                case "جمع حقوق مالکانه":
-                    $totalEquityRowNumber = trim($cel["address"], "A");
-                    break;
-                case "جمع بدهي‌هاي غيرجاري":
-                case "جمع بدهی‌های غیرجاری":
-                    $totalNonCurrentLiabilitiesRowNumber = trim($cel["address"], "A");
-                    break;
-                case "جمع بدهي‌هاي جاري":
-                case "جمع بدهی‌های جاری":
-                    $totalCurrentLiabilitiesRowNumber = trim($cel["address"], "A");
-                    break;
-                case "جمع بدهي‌ها":
-                case "جمع بدهی‌ها":
-                    $totalLiabilitiesRowNumber = trim($cel["address"], "A");
-                    break;
+        $balanceSheetLogic = resolve(BalanceSheetDataNormalizeLogic::class, [
+            "dataSource" => $dataSource
+        ]);
 
-            }
-            $data[$cel["address"]] = $cel["value"];
-        }
-        Excel::write($xlsxFile, $data);
-
-        $neededCol = collect([]);
-        foreach ($data as $coordinate => $value) {
-            foreach ($cols as $col) {
-                if (!empty($value) && $coordinate == $col . $totalAssetsRowNumber) {
-                    $neededCol->push($col);
-                }
-            }
-        }
-
-        $record = [];
-        if (!empty($totalNonCurrentAssetsRowNumber)) {
-            $record["total_non_current_assets"] = $data[$neededCol->first() . $totalNonCurrentAssetsRowNumber] * 100000;
-        }
-        if (!empty($receivableClaimRowNumber)) {
-            $record["receivable_claim"] = $data[$neededCol->first() . $receivableClaimRowNumber] * 100000;
-        }
-        if (!empty($totalCurrentAssetsRowNumber)) {
-            $record["total_current_assets"] = $data[$neededCol->first() . $totalCurrentAssetsRowNumber] * 100000;
-        }
-        if (!empty($totalAssetsRowNumber)) {
-            $record["total_assets"] = $data[$neededCol->first() . $totalAssetsRowNumber] * 100000;
-        }
-        if (!empty($fundRowNumber)) {
-            $record["fund"] = $data[$neededCol->first() . $fundRowNumber] * 100000;
-        }
-        if (!empty($accumulateProfitRowNumber)) {
-            $record["accumulated_profit"] = $data[$neededCol->first() . $accumulateProfitRowNumber] * 100000;
-        }
-        if (!empty($totalEquityRowNumber)) {
-            $record["total_equity"] = $data[$neededCol->first() . $totalEquityRowNumber] * 100000;
-        }
-        if (!empty($totalNonCurrentLiabilitiesRowNumber)) {
-            $record["total_non_current_liabilities"] = $data[$neededCol->first() . $totalNonCurrentLiabilitiesRowNumber] * 100000;
-        }
-        if (!empty($totalCurrentLiabilitiesRowNumber)) {
-            $record["total_current_liabilities"] = $data[$neededCol->first() . $totalCurrentLiabilitiesRowNumber] * 100000;
-        }
-        if (!empty($totalLiabilitiesRowNumber)) {
-            $record["total_liabilities"] = $data[$neededCol->first() . $totalLiabilitiesRowNumber] * 100000;
-        }
-
-        $start_date = Verta::parse($dataSource["yearEndToDate"])->subDays(365)->format("Y-m-d");
-        $end_date = Verta::parse($dataSource["yearEndToDate"])->format("Y-m-d");
-        $financialPeriod = FinancialPeriod::query()
-            ->where("solar_start_date", ">=", $start_date)
-            ->where("solar_end_date", "<=", $end_date)
-            ->first();
-
+        $record = $balanceSheetLogic->normalize();
         $record["instrument_id"] = $instrumentInstance->id;
-        $record["financial_period_id"] = $financialPeriod->id;
-        $record["order"] = (int)Verta::parse($dataSource["periodEndToDate"])->format("m");
-        $record["script"] = json_encode($dataSource);
         BalanceSheet::query()
             ->updateOrCreate(["financial_period_id" => $record["financial_period_id"], "order" => $record["order"]], $record);
+
+        Excel::write($xlsxFile, $balanceSheetLogic->getData());
+    }
+
+    private function makeXlsxFromCashFlowAndStoreInDatabase(mixed $dataSource, $instrumentInstance, string $xlsxFile)
+    {
+        $cashFlowLogic = resolve(CashFlowDataNormalizeLogic::class, [
+            "dataSource" => $dataSource
+        ]);
+
+        $record = $cashFlowLogic->normalize();
+        $record["instrument_id"] = $instrumentInstance->id;
+        CashFlow::query()
+            ->updateOrCreate(["financial_period_id" => $record["financial_period_id"], "order" => $record["order"]], $record);
+
+        Excel::write($xlsxFile, $cashFlowLogic->getData());
     }
 }

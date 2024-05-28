@@ -24,120 +24,98 @@ class BalanceSheetDataNormalizeLogic extends NormalizeAbstract
         $neededCol = collect([]);
         foreach ($this->data as $coordinate => $value) {
             switch ($value) {
-                case "درآمدهاي عملياتي":
-                case "درآمدهای عملیاتی":
-                    $totalRevenueRowNumber = trim($coordinate, "A");
+                case "جمع دارايي‌هاي غيرجاري":
+                case "جمع دارایی‌های غیرجاری":
+                    $totalNonCurrentAssetsRowNumber = trim($coordinate, "A");
                     break;
-                case "بهاى تمام شده درآمدهاي عملياتي":
-                case "بهاى تمام شده درآمدهای عملیاتی":
-                    $costOfRevenueRowNumber = trim($coordinate, "A");
+                case "دريافتني‌هاي تجاري و ساير دريافتني‌ها":
+                case "دریافتنی‌های تجاری و سایر دریافتنی‌ها":
+                    $receivableClaimRowNumber = trim($coordinate, "A");
                     break;
-                case "سود(زيان) ناخالص":
-                case "سود (زيان) ناخالص":
-                    $grossProfitRowNumber = trim($coordinate, "A");
+                case "جمع دارايي‌هاي جاري":
+                case "جمع دارایی‌های جاری":
+                    $totalCurrentAssetsRowNumber = trim($coordinate, "A");
                     break;
-                case "هزينه‏ هاى فروش، ادارى و عمومى":
-                case "هزينه‏‌هاى فروش، ادارى و عمومى":
-                    $operationExpensesRowNumber = trim($coordinate, "A");
-                    break;
-                case "ساير درآمدها":
-                case "سایر درآمدها و هزینه‌های عملیاتی":
-                    $otherOperatingIncomeRowNumber = trim($coordinate, "A");
-                    break;
-                case "سود(زيان) عملياتى":
-                case "سود (زيان) عملياتي":
-                    $operatingIncomeRowNumber = trim($coordinate, "A");
-                    break;
-                case "هزينه‏‌هاى مالى":
-                case "هزينه‏ هاى مالى":
-                    $financialCostRowNumber = trim($coordinate, "A");
-                    break;
-                case "ساير درآمدها و هزينه ‏هاى غيرعملياتى":
-                    $otherIncomeRowNumber1 = trim($coordinate, "A");
-                    break;
-                case "سایر درآمدها و هزینه‌های غیرعملیاتی- درآمد سرمایه‌گذاری‌ها":
-                    $otherIncomeRowNumber2 = trim($coordinate, "A");
-                    break;
-                case "سایر درآمدها و هزینه‌های غیرعملیاتی- اقلام متفرقه":
-                    $otherIncomeRowNumber3 = trim($coordinate, "A");
-                    break;
-                case "سال جاری":
-                case "سال جاري":
-                    $taxRowNumber = trim($coordinate, "A");
-                    break;
-                case "سود(زيان) خالص":
-                case "سود (زيان) خالص":
-                    $netIncomeRowNumber = trim($coordinate, "A");
+                case "جمع دارايي‌ها":
+                case "جمع دارایی‌ها":
+                    $totalAssetsRowNumber = trim($coordinate, "A");
                     break;
                 case "سرمايه":
-                case "سرمایه":
                     $fundRowNumber = trim($coordinate, "A");
                     break;
+                case "سود(زيان) انباشته":
+                case "سود (زيان) انباشته":
+                    $accumulateProfitRowNumber = trim($coordinate, "A");
+                    break;
+                case "جمع حقوق مالکانه":
+                    $totalEquityRowNumber = trim($coordinate, "A");
+                    break;
+                case "جمع بدهي‌هاي غيرجاري":
+                case "جمع بدهی‌های غیرجاری":
+                    $totalNonCurrentLiabilitiesRowNumber = trim($coordinate, "A");
+                    break;
+                case "جمع بدهي‌هاي جاري":
+                case "جمع بدهی‌های جاری":
+                    $totalCurrentLiabilitiesRowNumber = trim($coordinate, "A");
+                    break;
+                case "جمع بدهي‌ها":
+                case "جمع بدهی‌ها":
+                    $totalLiabilitiesRowNumber = trim($coordinate, "A");
+                    break;
+
             }
             foreach ($this->cols as $col) {
-                if (!empty($value) && !empty($fundRowNumber) && $coordinate == $col . $fundRowNumber) {
+                if (!empty($value) && !empty($totalAssetsRowNumber) && $coordinate == $col . $totalAssetsRowNumber) {
                     $neededCol->push($col);
                 }
             }
         }
 
+        if (!empty($totalNonCurrentAssetsRowNumber)) {
+            $record["total_non_current_assets"] = $this->data[$neededCol->first() . $totalNonCurrentAssetsRowNumber] * 100000;
+        }
+        if (!empty($receivableClaimRowNumber)) {
+            $record["receivable_claim"] = $this->data[$neededCol->first() . $receivableClaimRowNumber] * 100000;
+        }
+        if (!empty($totalCurrentAssetsRowNumber)) {
+            $record["total_current_assets"] = $this->data[$neededCol->first() . $totalCurrentAssetsRowNumber] * 100000;
+        }
+        if (!empty($totalAssetsRowNumber)) {
+            $record["total_assets"] = $this->data[$neededCol->first() . $totalAssetsRowNumber] * 100000;
+        }
         if (!empty($fundRowNumber)) {
             $record["fund"] = $this->data[$neededCol->first() . $fundRowNumber] * 100000;
         }
-        if (!empty($totalRevenueRowNumber)) {
-            $record["total_revenue"] = $this->data[$neededCol->first() . $totalRevenueRowNumber] * 100000;
+        if (!empty($accumulateProfitRowNumber)) {
+            $record["accumulated_profit"] = $this->data[$neededCol->first() . $accumulateProfitRowNumber] * 100000;
         }
-        if (!empty($costOfRevenueRowNumber)) {
-            $record["cost_of_revenue"] = $this->data[$neededCol->first() . $costOfRevenueRowNumber] * 100000;
+        if (!empty($totalEquityRowNumber)) {
+            $record["total_equity"] = $this->data[$neededCol->first() . $totalEquityRowNumber] * 100000;
         }
-        if (!empty($grossProfitRowNumber)) {
-            $record["gross_profit"] = $this->data[$neededCol->first() . $grossProfitRowNumber] * 100000;
+        if (!empty($totalNonCurrentLiabilitiesRowNumber)) {
+            $record["total_non_current_liabilities"] = $this->data[$neededCol->first() . $totalNonCurrentLiabilitiesRowNumber] * 100000;
         }
-        if (!empty($operationExpensesRowNumber)) {
-            $record["operation_expenses"] = $this->data[$neededCol->first() . $operationExpensesRowNumber] * 100000;
+        if (!empty($totalCurrentLiabilitiesRowNumber)) {
+            $record["total_current_liabilities"] = $this->data[$neededCol->first() . $totalCurrentLiabilitiesRowNumber] * 100000;
         }
-        if (!empty($otherOperatingIncomeRowNumber)) {
-            $record["other_operating_income"] = $this->data[$neededCol->first() . $otherOperatingIncomeRowNumber] * 100000;
+        if (!empty($totalLiabilitiesRowNumber)) {
+            $record["total_liabilities"] = $this->data[$neededCol->first() . $totalLiabilitiesRowNumber] * 100000;
         }
-        if (!empty($operatingIncomeRowNumber)) {
-            $record["operating_income"] = $this->data[$neededCol->first() . $operatingIncomeRowNumber] * 100000;
-        }
-        if (!empty($financialCostRowNumber)) {
-            $record["financial_cost"] = $this->data[$neededCol->first() . $financialCostRowNumber] * 100000;
-        }
-        if (!empty($otherIncomeRowNumber1) || !empty($otherIncomeRowNumber2) || !empty($otherIncomeRowNumber3)) {
-            $otherIncome = 0;
-            !empty($otherIncomeRowNumber1) ? $otherIncome += $this->data[$neededCol->first() . $otherIncomeRowNumber1] : null;
-            !empty($otherIncomeRowNumber2) ? $otherIncome += $this->data[$neededCol->first() . $otherIncomeRowNumber2] : null;
-            !empty($otherIncomeRowNumber3) ? $otherIncome += $this->data[$neededCol->first() . $otherIncomeRowNumber3] : null;
-            $record["other_income"] = $otherIncome * 100000;
-        }
-        if (!empty($taxRowNumber)) {
-            $record["tax"] = $this->data[$neededCol->first() . $taxRowNumber] * 100000;
-        }
-        if (!empty($netIncomeRowNumber)) {
-            $record["net_profit"] = $this->data[$neededCol->first() . $netIncomeRowNumber] * 100000;
-        }
+
         $record["order"] = (int)Verta::parse($this->data["periodEndToDate"])->format("m");
         $record["script"] = json_encode($this->dataSource);
 
-        $record = $this->updateFinancialPeriod($record);
+        $record["financial_period_id"] = $this->getFinancialPeriodId();
         return $record;
     }
 
-    private function updateFinancialPeriod(array $record): array
+    private function getFinancialPeriodId()
     {
         $start_date = Verta::parse($this->dataSource["yearEndToDate"])->subDays(365)->format("Y-m-d");
         $end_date = Verta::parse($this->dataSource["yearEndToDate"])->format("Y-m-d");
-        $financialPeriod = FinancialPeriod::query()
+        return FinancialPeriod::query()
             ->where("solar_start_date", ">=", $start_date)
             ->where("solar_end_date", "<=", $end_date)
-            ->first();
-        if ($financialPeriod->share_count < ($record["fund"] / 100)) {
-            $financialPeriod->share_count = $record["fund"] / 100;
-            $financialPeriod->save();
-        }
-        $record["financial_period_id"] = $financialPeriod->id;
-        return $record;
+            ->first()->id;
     }
 }

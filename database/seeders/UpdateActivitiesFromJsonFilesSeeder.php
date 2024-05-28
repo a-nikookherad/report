@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Logics\Bourse\Normalize\IncomeStatementDataNormalizeLogic;
-use App\Models\Bourse\IncomeStatement;
+use App\Logics\Bourse\Normalize\ActivityDataNormalizeLogic;
+use App\Models\Bourse\Activity;
 use App\Models\Bourse\Instrument;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\App;
 
@@ -16,7 +15,6 @@ class UpdateActivitiesFromJsonFilesSeeder extends Seeder
      */
     public function run(): void
     {
-
         $jsonFiles = glob(storage_path(config("financial.folder") . DIRECTORY_SEPARATOR . "*"));
         foreach ($jsonFiles as $jsonFile) {
             $instrumentInstance = Instrument::query()
@@ -25,18 +23,18 @@ class UpdateActivitiesFromJsonFilesSeeder extends Seeder
             if (!$instrumentInstance) {
                 continue;
             }
-            $incomeStatementsDataSources = glob($jsonFile . DIRECTORY_SEPARATOR . "json" . DIRECTORY_SEPARATOR . "income_statement" . DIRECTORY_SEPARATOR . "*");
-            foreach ($incomeStatementsDataSources as $incomeStatementsDataSource) {
-                if (!file_exists($incomeStatementsDataSource)) {
+            $activityDataSources = glob($jsonFile . DIRECTORY_SEPARATOR . "json" . DIRECTORY_SEPARATOR . "activity" . DIRECTORY_SEPARATOR . "*");
+            foreach ($activityDataSources as $activityDataSource) {
+                if (!file_exists($activityDataSource)) {
                     continue;
                 }
-                $dataSource = json_decode(file_get_contents($incomeStatementsDataSource), true);
-                $incomeStatementLogic = App::make(IncomeStatementDataNormalizeLogic::class, [
+                $dataSource = json_decode(file_get_contents($activityDataSource), true);
+                $activityLogic = App::make(ActivityDataNormalizeLogic::class, [
                     "dataSource" => $dataSource
                 ]);
-                $record = $incomeStatementLogic->normalize();
+                $record = $activityLogic->normalize();
                 $record["instrument_id"] = $instrumentInstance->id;
-                IncomeStatement::query()
+                Activity::query()
                     ->updateOrCreate(["financial_period_id" => $record["financial_period_id"], "order" => $record["order"]], $record);
             }
         }

@@ -22,10 +22,13 @@ class DatabaseSeeder extends Seeder
 //        ]);
 
         $this->call([
-//            GroupSeeder::class,
-//            IndustrySeeder::class,
-//            InstrumentSeeder::class,
+            GroupSeeder::class,
+            IndustrySeeder::class,
+            InstrumentSeeder::class,
             UpdateInstrumentIncomeStatementFromJsonFilesSeeder::class,
+            UpdateBalanceSheetFromJsonFilesSeeder::class,
+            UpdateCashFlowFromJsonFilesSeeder::class,
+            UpdateActivitiesFromJsonFilesSeeder::class,
         ]);
     }
 }

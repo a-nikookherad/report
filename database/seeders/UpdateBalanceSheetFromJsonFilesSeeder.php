@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Logics\Bourse\Normalize\IncomeStatementDataNormalizeLogic;
-use App\Models\Bourse\IncomeStatement;
+use App\Logics\Bourse\Normalize\BalanceSheetDataNormalizeLogic;
+use App\Models\Bourse\BalanceSheet;
 use App\Models\Bourse\Instrument;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\App;
 
@@ -25,18 +24,18 @@ class UpdateBalanceSheetFromJsonFilesSeeder extends Seeder
             if (!$instrumentInstance) {
                 continue;
             }
-            $incomeStatementsDataSources = glob($jsonFile . DIRECTORY_SEPARATOR . "json" . DIRECTORY_SEPARATOR . "income_statement" . DIRECTORY_SEPARATOR . "*");
-            foreach ($incomeStatementsDataSources as $incomeStatementsDataSource) {
-                if (!file_exists($incomeStatementsDataSource)) {
+            $balanceSheetDataSources = glob($jsonFile . DIRECTORY_SEPARATOR . "json" . DIRECTORY_SEPARATOR . "balance_sheet" . DIRECTORY_SEPARATOR . "*");
+            foreach ($balanceSheetDataSources as $balanceSheetDataSource) {
+                if (!file_exists($balanceSheetDataSource)) {
                     continue;
                 }
-                $dataSource = json_decode(file_get_contents($incomeStatementsDataSource), true);
-                $incomeStatementLogic = App::make(IncomeStatementDataNormalizeLogic::class, [
+                $dataSource = json_decode(file_get_contents($balanceSheetDataSource), true);
+                $balanceSheetLogic = App::make(BalanceSheetDataNormalizeLogic::class, [
                     "dataSource" => $dataSource
                 ]);
-                $record = $incomeStatementLogic->normalize();
+                $record = $balanceSheetLogic->normalize();
                 $record["instrument_id"] = $instrumentInstance->id;
-                IncomeStatement::query()
+                BalanceSheet::query()
                     ->updateOrCreate(["financial_period_id" => $record["financial_period_id"], "order" => $record["order"]], $record);
             }
         }
