@@ -17,7 +17,7 @@ class IncomeStatement extends Model
         "operating_income",
         "other_operating_income",
         "other_income",
-        "net_income",
+        "net_profit",
         "order",
         "financial_cost",
         "tax",

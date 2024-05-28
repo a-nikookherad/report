@@ -33,7 +33,7 @@ return new class extends Migration {
                 ->nullable();
 
             $table->bigInteger("operating_income")
-                ->comment("سود عملیاتی")
+                ->comment("درآمد عملیاتی")
                 ->nullable();
 
             $table->bigInteger("financial_cost")
@@ -48,7 +48,7 @@ return new class extends Migration {
                 ->comment("مالیات بر درآمد")
                 ->nullable();
 
-            $table->bigInteger("net_income")
+            $table->bigInteger("net_profit")
                 ->comment("سود خالص")
                 ->nullable();
 

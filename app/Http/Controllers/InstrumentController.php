@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\InstrumentInfoStoreRequest;
 use App\Http\Requests\StoreInstrumentRequest;
+use App\Logics\Bourse\Normalize\IncomeStatementDataNormalizeLogic;
 use App\Models\Bourse\Activity;
 use App\Models\Bourse\BalanceSheet;
 use App\Models\Bourse\FinancialPeriod;
@@ -100,11 +101,11 @@ class InstrumentController extends Controller
             ->first();
 
         $price = $historyInstance->close / 10 * $historyInstance->share_count;
-        $earn = $incomeStatement->net_income / $incomeStatement->order * 12;
+        $earn = $incomeStatement->net_profit / $incomeStatement->order * 12;
 
         $ratio = [];
         $ratio["gross"] = number_format($incomeStatement->gross_profit / $incomeStatement->total_revenue * 100) . "%";
-        $ratio["net"] = number_format($incomeStatement->net_income / $incomeStatement->total_revenue * 100) . "%";
+        $ratio["net"] = number_format($incomeStatement->net_profit / $incomeStatement->total_revenue * 100) . "%";
 
         //calculate P/E
         $ratio["P/E"] = number_format($price / $earn, 1);
@@ -254,7 +255,7 @@ class InstrumentController extends Controller
             } elseif ($request->financial_report_type == "balance_sheet") {
                 $this->makeXlsxFromBalanceSheetAndStoreInDatabase($dataSource, $data, $xlsxFile, $cols, $instrumentInstance);
             } elseif ($request->financial_report_type == "income_statement") {
-                $this->makeXlsxFromIncomeStatementAndStoreInDatabase($dataSource, $data, $xlsxFile, $cols, $instrumentInstance);
+                $this->makeXlsxFromIncomeStatementAndStoreInDatabase($dataSource, $instrumentInstance, $xlsxFile);
             } elseif ($request->financial_report_type == "cash_flow") {
 
             }
@@ -373,131 +374,18 @@ class InstrumentController extends Controller
             ->updateOrCreate(["order" => $record["order"], "financial_period_id" => $record["financial_period_id"]], $record);
     }
 
-    private function makeXlsxFromIncomeStatementAndStoreInDatabase(mixed $dataSource, array $data, string $xlsxFile, array $cols, $instrumentInstance)
+    private function makeXlsxFromIncomeStatementAndStoreInDatabase(mixed $dataSource, $instrumentInstance, string $xlsxFile)
     {
-        foreach ($dataSource["sheets"][0]["tables"][0]["cells"] as $cel) {
-            switch ($cel["value"]) {
-                case "درآمدهاي عملياتي":
-                case "درآمدهای عملیاتی":
-                    $totalRevenueRowNumber = trim($cel["address"], "A");
-                    break;
-                case "بهاى تمام شده درآمدهاي عملياتي":
-                case "بهاى تمام شده درآمدهای عملیاتی":
-                    $costOfRevenueRowNumber = trim($cel["address"], "A");
-                    break;
-                case "سود(زيان) ناخالص":
-                case "سود (زيان) ناخالص":
-                    $grossProfitRowNumber = trim($cel["address"], "A");
-                    break;
-                case "هزينه‏ هاى فروش، ادارى و عمومى":
-                case "هزينه‏‌هاى فروش، ادارى و عمومى":
-                    $operationExpensesRowNumber = trim($cel["address"], "A");
-                    break;
-                case "ساير درآمدها":
-                case "سایر درآمدها و هزینه‌های عملیاتی":
-                    $otherOperatingIncomeRowNumber = trim($cel["address"], "A");
-                    break;
-                case "سود(زيان) عملياتى":
-                case "سود (زيان) عملياتي":
-                    $operatingIncomeRowNumber = trim($cel["address"], "A");
-                    break;
-                case "هزينه‏‌هاى مالى":
-                case "هزينه‏ هاى مالى":
-                    $financialCostRowNumber = trim($cel["address"], "A");
-                    break;
-                case "ساير درآمدها و هزينه ‏هاى غيرعملياتى":
-                    $otherIncomeRowNumber1 = trim($cel["address"], "A");
-                    break;
-                case "سایر درآمدها و هزینه‌های غیرعملیاتی- درآمد سرمایه‌گذاری‌ها":
-                    $otherIncomeRowNumber2 = trim($cel["address"], "A");
-                    break;
-                case "سایر درآمدها و هزینه‌های غیرعملیاتی- اقلام متفرقه":
-                    $otherIncomeRowNumber3 = trim($cel["address"], "A");
-                    break;
-                case "سال جاری":
-                case "سال جاري":
-                    $taxRowNumber = trim($cel["address"], "A");
-                    break;
-                case "سود(زيان) خالص":
-                case "سود (زيان) خالص":
-                    $netIncomeRowNumber = trim($cel["address"], "A");
-                    break;
-                case "سرمايه":
-                case "سرمایه":
-                    $fundRowNumber = trim($cel["address"], "A");
-                    break;
-            }
-            $data[$cel["address"]] = $cel["value"];
-        }
-        Excel::write($xlsxFile, $data);
+        $incomeStatementLogic = resolve(IncomeStatementDataNormalizeLogic::class, [
+            "dataSource" => $dataSource
+        ]);
 
-        $neededCol = collect([]);
-        foreach ($data as $coordinate => $value) {
-            foreach ($cols as $col) {
-                if (!empty($value) && $coordinate == $col . $fundRowNumber) {
-                    $neededCol->push($col);
-                }
-            }
-        }
-
-        $start_date = Verta::parse($dataSource["yearEndToDate"])->subDays(365)->format("Y-m-d");
-        $end_date = Verta::parse($dataSource["yearEndToDate"])->format("Y-m-d");
-        $financialPeriod = FinancialPeriod::query()
-            ->where("solar_start_date", ">=", $start_date)
-            ->where("solar_end_date", "<=", $end_date)
-            ->first();
-
-        $record = [];
-        if (!empty($fundRowNumber)) {
-            $record["fund"] = $data[$neededCol->first() . $fundRowNumber] * 100000;
-            if ($financialPeriod->share_count < ($record["fund"] / 100)) {
-                $financialPeriod->share_count = $record["fund"] / 100;
-                $financialPeriod->save();
-            }
-        }
-
-        if (!empty($totalRevenueRowNumber)) {
-            $record["total_revenue"] = $data[$neededCol->first() . $totalRevenueRowNumber] * 100000;
-        }
-        if (!empty($costOfRevenueRowNumber)) {
-            $record["cost_of_revenue"] = $data[$neededCol->first() . $costOfRevenueRowNumber] * 100000;
-        }
-        if (!empty($grossProfitRowNumber)) {
-            $record["gross_profit"] = $data[$neededCol->first() . $grossProfitRowNumber] * 100000;
-        }
-        if (!empty($operationExpensesRowNumber)) {
-            $record["operation_expenses"] = $data[$neededCol->first() . $operationExpensesRowNumber] * 100000;
-        }
-        if (!empty($otherOperatingIncomeRowNumber)) {
-            $record["other_operating_income"] = $data[$neededCol->first() . $otherOperatingIncomeRowNumber] * 100000;
-        }
-        if (!empty($operatingIncomeRowNumber)) {
-            $record["operating_income"] = $data[$neededCol->first() . $operatingIncomeRowNumber] * 100000;
-        }
-        if (!empty($financialCostRowNumber)) {
-            $record["financial_cost"] = $data[$neededCol->first() . $financialCostRowNumber] * 100000;
-        }
-        if (!empty($otherIncomeRowNumber1) || !empty($otherIncomeRowNumber2) || !empty($otherIncomeRowNumber3)) {
-            $otherIncome = 0;
-            !empty($otherIncomeRowNumber1) ? $otherIncome += $data[$neededCol->first() . $otherIncomeRowNumber1] : null;
-            !empty($otherIncomeRowNumber2) ? $otherIncome += $data[$neededCol->first() . $otherIncomeRowNumber2] : null;
-            !empty($otherIncomeRowNumber3) ? $otherIncome += $data[$neededCol->first() . $otherIncomeRowNumber3] : null;
-            $record["other_income"] = $otherIncome * 100000;
-        }
-        if (!empty($taxRowNumber)) {
-            $record["tax"] = $data[$neededCol->first() . $taxRowNumber] * 100000;
-        }
-        if (!empty($netIncomeRowNumber)) {
-            $record["net_income"] = $data[$neededCol->first() . $netIncomeRowNumber] * 100000;
-        }
-
-
+        $record = $incomeStatementLogic->normalize();
         $record["instrument_id"] = $instrumentInstance->id;
-        $record["financial_period_id"] = $financialPeriod->id;
-        $record["order"] = (int)Verta::parse($dataSource["periodEndToDate"])->format("m");
-        $record["script"] = json_encode($dataSource);
         IncomeStatement::query()
             ->updateOrCreate(["financial_period_id" => $record["financial_period_id"], "order" => $record["order"]], $record);
+
+        Excel::write($xlsxFile, $incomeStatementLogic->getData());
     }
 
     private function makeXlsxFromBalanceSheetAndStoreInDatabase(mixed $dataSource, array $data, string $xlsxFile, array $cols, $instrumentInstance): void

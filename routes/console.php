@@ -2,6 +2,7 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -15,3 +16,8 @@ Artisan::command('report:import', function () {
     Artisan::call("report:import-tether");
     $this->comment("everything be good");
 });
+
+Schedule::command("submit:ipo")
+    ->dailyAt('8:58')
+    ->everySecond();
+

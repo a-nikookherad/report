@@ -13,17 +13,36 @@ return new class extends Migration {
         Schema::create('cash_flows', function (Blueprint $table) {
             $table->id();
 
-            $table->bigInteger("net_income")
-                ->comment("جریان های نقدی حاصل از فعالیت های عملیاتی")
+            $table->bigInteger("cash_from_operation")
+                ->comment("نقد حاصل از عمليات")
                 ->nullable();
 
             $table->bigInteger("cash_from_investing")
-                ->comment("حاصل از فعالیت های سرمایه گذاری")
+                ->comment("نقد حاصل از فعالیت های سرمایه گذاری")
+                ->nullable();
+
+
+
+            $table->bigInteger("receipts_from_facilities")
+                ->comment("دريافت‌هاي نقدي حاصل از تسهيلات")
+                ->nullable();
+
+            $table->bigInteger("payments_for_principle_facilities")
+                ->comment("پرداخت‌هاي نقدي بابت اصل تسهيلات")
+                ->nullable();
+
+            $table->bigInteger("payments_for_interest_facilities")
+                ->comment("پرداخت‌هاي نقدي بابت سود تسهيلات")
+                ->nullable();
+
+            $table->bigInteger("dividend_payments")
+                ->comment("پرداخت‌هاي نقدي بابت سود سهام")
                 ->nullable();
 
             $table->bigInteger("cash_from_financing")
-                ->comment("حاصل فعالیت های تامین مالی")
+                ->comment("نقد حاصل فعالیت های تامین مالی")
                 ->nullable();
+
 
             $table->bigInteger("foreign_exchange_effect")
                 ->comment("تسعیر ارز")

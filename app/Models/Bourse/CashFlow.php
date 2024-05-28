@@ -10,7 +10,7 @@ class CashFlow extends Model
     use HasFactory;
 
     protected $fillable = [
-        "net_income",
+        "net_profit",
         "cash_from_investing",
         "cash_from_financing",
         "foreign_exchange_effect",

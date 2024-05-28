@@ -10,7 +10,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('ratios', function (Blueprint $table) {
+        Schema::create('prices_analyses', function (Blueprint $table) {
             $table->id();
             $table->float("p_e")
                 ->comment("price to earn")
@@ -28,15 +28,18 @@ return new class extends Migration {
                 ->comment("price to book value")
                 ->nullable();
 
-//            $table->boolean("fis")
-//                ->comment("fis system accept")
-//                ->nullable();
+            $table->float("p_d")
+                ->comment("price to dividend share")
+                ->nullable();
 
-            $table->unsignedBigInteger("instrument_id")
+            $table->unsignedSmallInteger("financial_statements_order")
+                ->nullable();
+
+            $table->unsignedBigInteger("activity_id")
                 ->index();
-            $table->foreign("instrument_id")
+            $table->foreign("activity_id")
                 ->references("id")
-                ->on("instruments");
+                ->on("activities");
 
             $table->unsignedBigInteger("financial_period_id")
                 ->index();
@@ -44,6 +47,11 @@ return new class extends Migration {
                 ->references("id")
                 ->on("financial_periods");
 
+            $table->unsignedBigInteger("instrument_id")
+                ->index();
+            $table->foreign("instrument_id")
+                ->references("id")
+                ->on("instruments");
             $table->timestamps();
         });
     }
@@ -53,6 +61,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('ratios');
+        Schema::dropIfExists('prices_analyses');
     }
 };

@@ -11,35 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('reports', function (Blueprint $table) {
+        Schema::create('financial_statements_analyses', function (Blueprint $table) {
             $table->id();
 
             $table->integer("gross_profit_percent")
                 ->nullable();
 
-            $table->integer("rc_a")
-                ->comment("receivable claim to asset(%)")
-                ->nullable();
-
             $table->integer("net_profit_percent")
                 ->nullable();
 
-            $table->integer("net_profit")
-                ->nullable();
-
-            $table->integer("total_net_profit")
+            $table->integer("net_profit_predict")
                 ->comment("all this year net profit predict")
                 ->nullable();
 
-            $table->unsignedBigInteger("nav")
-                ->comment("net asset value")
-                ->nullable();
-
-            $table->unsignedBigInteger("usd_nav")
-                ->comment("nav to dollar")
-                ->nullable();
-
-            $table->integer("peg")
+            $table->integer("rc_a")
+                ->comment("receivable claim to asset(%)")
                 ->nullable();
 
             $table->integer("roe")
@@ -48,6 +34,16 @@ return new class extends Migration
 
             $table->integer("roa")
                 ->comment("return of asset(%)")
+                ->nullable();
+
+            $table->unsignedBigInteger("nav")
+                ->comment("net asset value")
+                ->nullable();
+
+            $table->integer("peg")
+                ->nullable();
+
+            $table->unsignedSmallInteger("order")
                 ->nullable();
 
             $table->unsignedBigInteger("instrument_id")
@@ -59,7 +55,6 @@ return new class extends Migration
                 ->index();
             $table->foreign("financial_period_id")
                 ->references("id")->on("financial_periods");
-
             $table->timestamps();
         });
     }
@@ -69,6 +64,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('reports');
+        Schema::dropIfExists('financial_statements_analyses');
     }
 };
