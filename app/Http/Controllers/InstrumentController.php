@@ -24,6 +24,7 @@ use Hekmatinasser\Verta\Facades\Verta;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class InstrumentController extends Controller
 {
@@ -33,6 +34,74 @@ class InstrumentController extends Controller
             ->with("industry")
             ->get();
         return view('contents.instruments.list', compact("instruments"));
+    }
+
+    public function updateHistory()
+    {
+        $instrumentInstance = Instrument::query()
+            ->where("id", request("instrument_id"))
+            ->with(["financialPeriods.incomeStatements", "incomeStatement", "balanceSheet"])
+            ->first();
+        $startDateTime = Date::now()->subYears(config("financial.how_many_years_ago_for_report"))->timestamp;
+        $endDateTime = Date::now()->timestamp;
+        $url = config("financial.mofid_url") . "?resolution=1D&" . $instrumentInstance->mofid_url;
+        $url .= "&from=" . $startDateTime;
+        $url .= "&to=" . $endDateTime;
+
+        $response = Http::withToken(config("financial.mofid_token"))
+            ->get($url);
+
+        if (!$response->successful() || $response->object()->s != "ok") {
+            dd("please set mofid token");
+        }
+        set_time_limit(5000);
+        $response = $response->object();
+        foreach ($response->t as $index => $time) {
+            $date = Date::createFromTimestamp($time)->format("Y-m-d");
+            $solarDate = Verta::parse(verta($time))->endYear()->format("Y-m-d");
+            $financialPeriod = FinancialPeriod::query()
+                ->where("instrument_id", $instrumentInstance->id)
+                ->where("solar_end_date", $solarDate)
+                ->with("incomeStatements")
+                ->firstOr(function () use ($instrumentInstance, $time) {
+                    $date = Verta::parse(verta($time))->subYear()->endYear()->format("Y-m-d");
+                    return FinancialPeriod::query()
+                        ->where("instrument_id", $instrumentInstance->id)
+                        ->where("solar_end_date", $date)
+                        ->with("incomeStatements")
+                        ->first();
+                });
+            try {
+                if (!$financialPeriod) {
+                    continue;
+                }
+                $fund = $financialPeriod->incomeStatements->where("fund", "!=", null)->last()?->fund;
+                $shareCount = !empty($fund) ? $fund / 100 : $financialPeriod->share_count;
+                $record = [
+                    "open" => $response->o[$index],
+                    "high" => $response->h[$index],
+                    "low" => $response->l[$index],
+                    "close" => $response->c[$index],
+                    "volume" => $response->v[$index],
+                    "share_count" => $shareCount,
+                    "tarikh" => verta($date)->format("Y-m-d") ?? null,
+                    "date_time" => $date,
+                    "timestamp" => $response->t[$index],
+                    "financial_period_id" => $financialPeriod->id,
+                    "instrument_id" => $instrumentInstance->id,
+                ];
+                History::query()
+                    ->updateOrCreate([
+                        "instrument_id" => $record["instrument_id"],
+                        "financial_period_id" => $record["financial_period_id"],
+                        "date_time" => $record["date_time"],
+                    ], $record);
+            } catch (\Exception $exception) {
+//                        dd($exception->getMessage());
+                continue;
+            }
+        }
+        return redirect()->back();
     }
 
     public function ratio()

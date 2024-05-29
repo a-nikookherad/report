@@ -30,14 +30,14 @@ class SubmitIPOOrderCommand extends Command
      */
     public function handle()
     {
-        if (Cache::get("successAttempt") >= 1 && !Carbon::now()->isBetween("8:29:58", "8:30:04")) {
+        if (Cache::get("successAttempt") >= 2 && !Carbon::now()->isBetween("8:29:59", "8:30:04")) {
             exit();
         }
         $data = [
             "order" => [
                 "symbolIsin" => "IRO3GOFZ0001",
-                "price" => "6590",
-                "quantity" => "3677",
+                "price" => "6720",
+                "quantity" => "23216",
                 "side" => 0,
                 "validityType" => 0,
                 "validityDate" => null,

@@ -9,6 +9,12 @@ class FinancialPeriod extends Model
 {
     use HasFactory;
 
+    protected $with = [
+        "balanceSheets",
+        "incomeStatements",
+        "cashFlows",
+        "activities",
+    ];
     protected $fillable = [
         "solar_start_date",
         "solar_end_date",

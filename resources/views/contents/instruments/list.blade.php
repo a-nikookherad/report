@@ -34,8 +34,11 @@
                                             <button type="button" class="btn btn-square btn-outline-info m-2"><i
                                                     class="fa fa-chart-area"></i></button>
                                         </a>
-                                        <button type="button" class="btn btn-square btn-outline-success m-2"><i
-                                                class="fa fa-edit"></i></button>
+                                        <a href="{{route("instrument.update.history",["instrument_id"=>$instrument->id])}}">
+                                            <button type="button" class="btn btn-square btn-outline-success m-2"><i
+                                                    class="fa fa-map-pin"></i></button>
+                                        </a>
+
                                         <a href="{{route("instrument.add.info",["instrument_id"=>$instrument->id])}}">
                                             <button type="button" class="btn btn-square btn-outline-warning m-2"><i
                                                     class="fa fa-address-card"></i></button>

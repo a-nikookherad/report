@@ -17,7 +17,8 @@ Route::group([
         return view('contents.dashboard');
     })->name("dashboard");
 
-    Route::get('/instruments', [\App\Http\Controllers\InstrumentController::class, "list"]);
+    Route::get('/instruments', [\App\Http\Controllers\InstrumentController::class, "list"])
+        ->name("instrument.list");
 
     Route::get('/instruments/add', [\App\Http\Controllers\InstrumentController::class, "add"])
         ->name("instrument.add");
@@ -31,6 +32,12 @@ Route::group([
 
     Route::get('/instruments/{instrument_id}/ratio', [\App\Http\Controllers\InstrumentController::class, "ratio"])
         ->name("instrument.ratio");
+
+    Route::get('/instruments/{instrument_id}/history', [\App\Http\Controllers\InstrumentController::class, "updateHistory"])
+        ->name("instrument.update.history");
+
+    Route::post('/login/to/mofid', [\App\Http\Controllers\MofidController::class, "loginToMofid"])
+        ->name("mofid.login");
 });
 
 Route::group([

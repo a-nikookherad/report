@@ -4,6 +4,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Start Year
+    |--------------------------------------------------------------------------
+    |
+    | Specify how many years ago for all data reports start with
+    |
+    */
+
+    'how_many_years_ago_for_report' => env('how_many_years_ago_for_report', 12),
+
+    /*
+    |--------------------------------------------------------------------------
     | USD to AED
     |--------------------------------------------------------------------------
     |
@@ -32,5 +43,5 @@ return [
     |
     */
     'mofid_token' => env('mofid_token'),
-    'mofid_url' => env('mofid_url',"https://api-mts.orbis.easytrader.ir/chart/api/datafeed/history"),
+    'mofid_url' => env('mofid_url', "https://api-mts.orbis.easytrader.ir/chart/api/datafeed/history"),
 ];
