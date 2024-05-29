@@ -37,6 +37,9 @@ abstract class NormalizeAbstract
     protected function prepareData(): object
     {
         foreach ($this->dataSource["sheets"][0]["tables"][0]["cells"] as $cel) {
+            /*if ($cel["isVisible"] == true) {
+                $this->data[$cel["address"]] = $cel["value"];
+            }*/
             $this->data[$cel["address"]] = $cel["value"];
         }
         $this->data["yearEndToDate"] = $this->dataSource["yearEndToDate"];

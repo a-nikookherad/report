@@ -18,6 +18,7 @@ Artisan::command('report:import', function () {
 });
 
 Schedule::command("submit:ipo")
-    ->dailyAt('8:28')
-    ->everySecond();
+    ->dailyAt('8:42')
+    ->everySecond()
+    ->name("ipo");
 

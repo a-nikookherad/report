@@ -30,7 +30,9 @@ class SubmitIPOOrderCommand extends Command
      */
     public function handle()
     {
-        if (Cache::get("successAttempt") >= 2 && !Carbon::now()->isBetween("8:29:59", "8:30:04")) {
+        $startTime = Carbon::createFromTime(8, 44, 59)->format("Y-m-d H:i:s");
+        $endTime = Carbon::createFromTime(8, 45, 3)->format("Y-m-d H:i:s");
+        if (Cache::get("successAttempt") >= 1 || !Carbon::now()->isBetween($startTime, $endTime)) {
             exit();
         }
         $data = [
@@ -53,6 +55,13 @@ class SubmitIPOOrderCommand extends Command
             "Referer" => "https://d.orbis.easytrader.ir",
             "sec-ch-ua-platform" => "Windows",
         ];
+        /*$response = Http::fake(function () {
+            return [
+                "isSuccessful" => true,
+                "id" => "1121AE0tpkf1WqFp",
+                "message" => ""
+            ];
+        })->post($url, $data);*/
         $response = Http::withHeaders($headers)
             ->withToken(config("financial.mofid_token"))
             ->retry(3, 100)
@@ -60,16 +69,16 @@ class SubmitIPOOrderCommand extends Command
 
         if ($response->successful() && $response->object()->isSuccessful) {
             if (Cache::has("successAttempt")) {
-                Cache::set("successAttempt", Cache::get("successAttempt") + 1);
+                Cache::put("successAttempt", Cache::get("successAttempt") + 1, 600);
             } else {
-                Cache::set("successAttempt", 1);
+                Cache::put("successAttempt", 1, 600);
             }
+            $record["success"] = $response->successful();
         }
 
         $record["symbol"] = $data["order"]["symbolIsin"] ?? null;
         $record["price"] = $data["order"]["price"];
         $record["quantity"] = $data["order"]["quantity"];
-        $record["success"] = $response->successful();
         $record["status"] = $response->status();
         $record["body"] = $response->body();
 

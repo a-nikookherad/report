@@ -35,8 +35,14 @@ return new class extends Migration {
             $table->unsignedSmallInteger("financial_statements_order")
                 ->nullable();
 
-            $table->unsignedBigInteger("activity_id")
+            $table->unsignedBigInteger("history_id")
                 ->index();
+            $table->foreign("history_id")
+                ->references("id")
+                ->on("histories");
+
+            $table->unsignedBigInteger("activity_id")
+                ->nullable();
             $table->foreign("activity_id")
                 ->references("id")
                 ->on("activities");

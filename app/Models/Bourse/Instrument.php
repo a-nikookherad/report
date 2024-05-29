@@ -75,4 +75,10 @@ class Instrument extends Model
     {
         return $this->hasMany(History::class, "instrument_id");
     }
+
+    public function lastHistory()
+    {
+        return $this->hasOne(History::class, "instrument_id")
+            ->orderBy("timestamp","desc");
+    }
 }

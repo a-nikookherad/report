@@ -31,12 +31,13 @@ class DollarImportCommand extends Command
         try {
             DB::beginTransaction();
             $url = "https://dashboard-api.tgju.org/v1/tv/history?symbol=PRICE_DOLLAR_RL&resolution=1440&from=1590248969&to=1714665029";
-            $response = Http::get($url)->object();
-            if ($response->s !== "ok") {
+            $response = Http::get($url);
+            if (!$response->successful()) {
                 exit();
             }
             //make record
             $records = [];
+            $response = $response->object();
             $open = $response->o;
             $high = $response->h;
             $low = $response->l;
@@ -50,7 +51,7 @@ class DollarImportCommand extends Command
                     "low" => $low[$i],
                     "close" => $close[$i],
                     "timestamp" => $dateTime[$i],
-                    "tarikh" => verta($dateTime[$i])->format("Y-m-d H:i:s")??null,
+                    "tarikh" => verta($dateTime[$i])->format("Y-m-d H:i:s") ?? null,
                     "date_time" => $date,
                 ]);
             }

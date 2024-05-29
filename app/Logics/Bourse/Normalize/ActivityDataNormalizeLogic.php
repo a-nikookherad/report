@@ -40,6 +40,11 @@ class ActivityDataNormalizeLogic extends NormalizeAbstract
             }
         }
 
+        //todo this happen when early 1398-12-29 because data format are different
+        /*        if ($neededCol->isEmpty()) {
+
+                }*/
+
         if ($neededCol->count() == 5) {
             $neededCol->forget([0, 1, 4]);
         } elseif ($neededCol->count() == 3) {
