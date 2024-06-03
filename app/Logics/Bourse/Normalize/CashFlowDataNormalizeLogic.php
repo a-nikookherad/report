@@ -25,30 +25,38 @@ class CashFlowDataNormalizeLogic extends NormalizeAbstract
         foreach ($this->data as $coordinate => $value) {
             switch ($value) {
                 case "نقد حاصل از عمليات":
+                case "نقد حاصل از عملیات":
                     $cashFromOperationRowNumber = trim($coordinate, "A");
                     break;
                 case "جريان خالص ورود (خروج) نقد حاصل از فعاليت‌هاي سرمايه‌گذاري":
+                case "جريان خالص ورود (خروج) نقد حاصل از فعاليت‌های سرمایه‌گذاری":
                     $cashFromInvestingRowNumber = trim($coordinate, "A");
                     break;
                 case "دريافت‌هاي نقدي حاصل از تسهيلات":
+                case "دریافت‌های نقدی حاصل از تسهيلات":
                     $receiptsFromFacilitiesRowNumber = trim($coordinate, "A");
                     break;
                 case "پرداخت‌هاي نقدي بابت اصل تسهيلات":
+                case "پرداخت‌های نقدی بابت اصل تسهيلات":
                     $paymentForPrincipleFacilitiesRowNumber = trim($coordinate, "A");
                     break;
                 case "پرداخت‌هاي نقدي بابت سود تسهيلات":
+                case "پرداخت‌های نقدی بابت سود تسهيلات":
                     $paymentForInterestFacilitiesRowNumber = trim($coordinate, "A");
                     break;
                 case "پرداخت‌هاي نقدي بابت سود سهام":
+                case "پرداخت‌های نقدی بابت سود سهام":
                     $dividendPaymentRowNumber = trim($coordinate, "A");
                     break;
                 case "جريان خالص ورود (خروج) نقد حاصل از فعاليت‌هاي تامين مالي":
+                case "جريان خالص ورود (خروج) نقد حاصل از فعالیت‌های تامين مالی":
                     $cashFromFinancingRowNumber = trim($coordinate, "A");
                     break;
                 case "تاثير تغييرات نرخ ارز":
                     $foreignExchangeEffectRowNumber = trim($coordinate, "A");
                     break;
                 case "خالص افزايش (کاهش) در موجودي نقد":
+                case "خالص افزايش (کاهش) در موجودی نقد":
                     $netIncomeCashRowNumber = trim($coordinate, "A");
                     break;
             }
@@ -86,7 +94,6 @@ class CashFlowDataNormalizeLogic extends NormalizeAbstract
         if (!empty($netIncomeCashRowNumber)) {
             $record["net_income_cash"] = $this->data[$neededCol->first() . $netIncomeCashRowNumber] * 100000;
         }
-
         $record["order"] = (int)Verta::parse($this->data["periodEndToDate"])->format("m");
         $record["script"] = json_encode($this->dataSource);
 

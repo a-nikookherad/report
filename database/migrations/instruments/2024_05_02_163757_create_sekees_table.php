@@ -20,11 +20,11 @@ return new class extends Migration {
                 ->nullable();
             $table->integer("close")
                 ->nullable();
+            $table->string("tarikh")->nullable();
+
             $table->dateTime("date_time")
                 ->nullable()
                 ->index("sekee_date_time_index");
-
-            $table->string("tarikh")->nullable();
             $table->unsignedBigInteger("timestamp")
                 ->index("sekee_timestamp_index");
             $table->timestamps();

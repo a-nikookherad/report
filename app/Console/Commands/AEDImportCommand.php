@@ -2,8 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Instruments\AED;
 use Exception;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
@@ -29,22 +31,33 @@ class AEDImportCommand extends Command
     public function handle()
     {
         try {
-            DB::beginTransaction();
-            $url = "https://dashboard-api.tgju.org/v1/tv/history?symbol=PRICE_AED&resolution=1440&from=1591017852&to=1715433912";
-            $response = Http::get($url)->object();
-            if ($response->s !== "ok") {
+            $lastRecord = AED::query()
+                ->orderBy("date_time", "desc")
+                ->first();
+            if ($lastRecord) {
+                $startDateTime = $lastRecord->timestamp;
+            } else {
+                $startDateTime = Date::createFromDate("1979-12-26")->timestamp;
+            }
+            $endDateTime = Date::now()->timestamp;
+            $url = "https://dashboard-api.tgju.org/v1/tv/history?symbol=PRICE_AED&resolution=1440&from={$startDateTime}&to={$endDateTime}";
+            $response = Http::get($url);
+            if ($response->failed() || $response->object()->s !== "ok") {
                 exit();
             }
             //make record
-            $records = [];
+            $response = $response->object();
             $open = $response->o;
             $high = $response->h;
             $low = $response->l;
             $close = $response->c;
             $dateTime = $response->t;
             for ($i = 0; $i < count($open); $i++) {
+                if ($dateTime[$i] < $startDateTime) {
+                    continue;
+                }
                 $date = \Illuminate\Support\Facades\Date::createFromTimestamp($dateTime[$i])->format("Y-m-d H:i:s");
-                array_push($records, [
+                $record = [
                     "open" => $open[$i],
                     "high" => $high[$i],
                     "low" => $low[$i],
@@ -52,19 +65,13 @@ class AEDImportCommand extends Command
                     "timestamp" => $dateTime[$i],
                     "tarikh" => verta($dateTime[$i])->format("Y-m-d H:i:s") ?? null,
                     "date_time" => $date,
-                ]);
-            }
-            foreach ($records as $record) {
+                ];
                 \App\Models\Instruments\AED::query()
                     ->updateOrCreate(["date_time" => $record["date_time"]], $record);
             }
-//            \App\Models\Instruments\AED::query()
-//                ->upsert($records, "date_time");
 
             $this->output->info("everything is done");
-            DB::commit();
         } catch (Exception $exception) {
-            DB::rollBack();
             dd($exception->getMessage());
         }
     }

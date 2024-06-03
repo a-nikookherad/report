@@ -2,8 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Instruments\Dollar;
 use Exception;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
@@ -30,13 +32,21 @@ class DollarImportCommand extends Command
     {
         try {
             DB::beginTransaction();
-            $url = "https://dashboard-api.tgju.org/v1/tv/history?symbol=PRICE_DOLLAR_RL&resolution=1440&from=1590248969&to=1714665029";
+            $lastRecord = Dollar::query()
+                ->orderBy("date_time", "desc")
+                ->first();
+            if ($lastRecord) {
+                $startDateTime = $lastRecord->timestamp;
+            } else {
+                $startDateTime = Date::createFromDate("1979-12-26")->timestamp;
+            }
+            $endDateTime = Date::now()->timestamp;
+            $url = "https://dashboard-api.tgju.org/v1/tv/history?symbol=PRICE_DOLLAR_RL&resolution=1440&from={$startDateTime}&to={$endDateTime}";
             $response = Http::get($url);
-            if (!$response->successful()) {
+            if ($response->failed() || $response->object()->s !== "ok") {
                 exit();
             }
             //make record
-            $records = [];
             $response = $response->object();
             $open = $response->o;
             $high = $response->h;
@@ -44,8 +54,8 @@ class DollarImportCommand extends Command
             $close = $response->c;
             $dateTime = $response->t;
             for ($i = 0; $i < count($open); $i++) {
-                $date = \Illuminate\Support\Facades\Date::createFromTimestamp($dateTime[$i])->format("Y-m-d H:i:s");
-                array_push($records, [
+                $date = Date::createFromTimestamp($dateTime[$i])->format("Y-m-d H:i:s");
+                $record = [
                     "open" => $open[$i],
                     "high" => $high[$i],
                     "low" => $low[$i],
@@ -53,14 +63,10 @@ class DollarImportCommand extends Command
                     "timestamp" => $dateTime[$i],
                     "tarikh" => verta($dateTime[$i])->format("Y-m-d H:i:s") ?? null,
                     "date_time" => $date,
-                ]);
-            }
-            foreach ($records as $record) {
-                \App\Models\Instruments\Dollar::query()
+                ];
+                Dollar::query()
                     ->updateOrCreate(["date_time" => $record["date_time"]], $record);
             }
-//            \App\Models\Instruments\Dollar::query()
-//                ->upsert($records, "date_time");
 
             $this->output->info("everything is done");
             DB::commit();

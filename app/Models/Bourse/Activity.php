@@ -33,4 +33,9 @@ class Activity extends Model
     {
         return $this->belongsTo(FinancialPeriod::class, "financial_period_id");
     }
+
+    public function analyze()
+    {
+        return $this->hasOne(ActivitiesAnalysis::class, "activity_id");
+    }
 }

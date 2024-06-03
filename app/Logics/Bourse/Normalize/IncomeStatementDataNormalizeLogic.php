@@ -133,7 +133,7 @@ class IncomeStatementDataNormalizeLogic extends NormalizeAbstract
             ->where("solar_start_date", ">=", $start_date)
             ->where("solar_end_date", "<=", $end_date)
             ->first();
-        if ($financialPeriod->share_count < ($record["fund"] / 100)) {
+        if (!empty($record["fund"]) && $financialPeriod->share_count < ($record["fund"] / 100)) {
             $financialPeriod->share_count = $record["fund"] / 100;
             $financialPeriod->save();
         }

@@ -12,20 +12,24 @@ return new class extends Migration {
     {
         Schema::create('activities_analyses', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger("total_year_sales")
-                ->comment("فروش کل سال")
-                ->nullable();
-
             $table->unsignedBigInteger("predict_year_sales")
                 ->comment("پیش بینی فروش کل سال")
                 ->nullable();
 
-            $table->unsignedBigInteger("season_sales")
-                ->comment("کل فروش در فصل")
+            $table->unsignedBigInteger("predict_year_sales_to_gold")
+                ->comment("پیش بینی فروش کل سال به طلا")
+                ->nullable();
+
+            $table->unsignedBigInteger("this_month_sale_to_gold")
+                ->comment("فروش این ماه به طلا")
                 ->nullable();
 
             $table->unsignedBigInteger("season_sales_predict")
                 ->comment("پیش بینی فروش فصل")
+                ->nullable();
+
+            $table->unsignedBigInteger("season_sales_predict_to_gold")
+                ->comment("پیش بینی فروش فصل به طلا")
                 ->nullable();
 
             $table->enum("order", [

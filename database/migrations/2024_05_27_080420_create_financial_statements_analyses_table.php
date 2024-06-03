@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -14,25 +13,49 @@ return new class extends Migration
         Schema::create('financial_statements_analyses', function (Blueprint $table) {
             $table->id();
 
-            $table->integer("gross_profit_percent")
+            $table->float("gross_profit_percent")
                 ->nullable();
 
-            $table->integer("net_profit_percent")
+            $table->float("net_profit_percent")
                 ->nullable();
 
-            $table->integer("net_profit_predict")
+            $table->float("dividend_percent")
+                ->nullable();
+
+            $table->unsignedBigInteger("financial_period_id")
+                ->index();
+            $table->foreign("financial_period_id")
+                ->references("id")->on("financial_periods");
+
+            $table->unsignedSmallInteger("order")
+                ->nullable();
+
+            $table->string("net_profit_to_gold")
+                ->nullable();
+            $table->string("net_profit_year_predict_to_gold")
+                ->comment("all this year net profit predict to gold")
+                ->nullable();
+
+            $table->string("dividend_to_gold")
+                ->nullable();
+
+            $table->unsignedBigInteger("net_profit_year_predict")
                 ->comment("all this year net profit predict")
                 ->nullable();
 
-            $table->integer("rc_a")
+            $table->float("a_l")
+                ->comment("current assets to current liabilities")
+                ->nullable();
+
+            $table->float("rc_a")
                 ->comment("receivable claim to asset(%)")
                 ->nullable();
 
-            $table->integer("roe")
+            $table->float("roe")
                 ->comment("return of equity(%)")
                 ->nullable();
 
-            $table->integer("roa")
+            $table->float("roa")
                 ->comment("return of asset(%)")
                 ->nullable();
 
@@ -40,21 +63,19 @@ return new class extends Migration
                 ->comment("net asset value")
                 ->nullable();
 
+            $table->string("nav_gold")
+                ->comment("net asset value to gold")
+                ->nullable();
+
             $table->integer("peg")
                 ->nullable();
 
-            $table->unsignedSmallInteger("order")
-                ->nullable();
 
             $table->unsignedBigInteger("instrument_id")
                 ->index();
             $table->foreign("instrument_id")
                 ->references("id")->on("instruments");
 
-            $table->unsignedBigInteger("financial_period_id")
-                ->index();
-            $table->foreign("financial_period_id")
-                ->references("id")->on("financial_periods");
             $table->timestamps();
         });
     }

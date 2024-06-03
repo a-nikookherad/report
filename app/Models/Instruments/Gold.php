@@ -9,8 +9,8 @@ class Gold extends Model
 {
     use HasFactory;
 
-    protected $table="golds";
-    protected $fillable=[
+    protected $table = "golds";
+    protected $fillable = [
         "open",
         "high",
         "low",

@@ -2,8 +2,12 @@
 
 namespace App\Observers;
 
+use App\Models\Bourse\FinancialPeriod;
 use App\Models\Bourse\History;
 use App\Models\Bourse\PricesAnalysis;
+use App\Models\Instruments\Gold;
+use Hekmatinasser\Verta\Verta;
+use Illuminate\Support\Facades\Date;
 
 class PriceObserver
 {
@@ -23,17 +27,49 @@ class PriceObserver
             if (empty($price)) {
                 return;
             }
-            $date = \Illuminate\Support\Facades\Date::createFromTimestamp($history->timestamp);
+
+            $date = Verta::parse($history->tarikh);
             $month = (int)$date->format("m");
             $incomeStatement = $financialPeriodInstance->incomeStatements?->whereIn("order", [$month, $month + 1, $month - 1])->first();
+            if (!$incomeStatement) {
+                $incomeStatement = $financialPeriodInstance->incomeStatements->sortByDesc("order")->first();
+                if (!$incomeStatement) {
+                    $lastFinancialPeriod = FinancialPeriod::query()
+                        ->where("instrument_id", $history->instrument_id)
+                        ->where("solar_end_date", $date->subYear()->endYear()->endMonth()->format("Y-m-d"))
+                        ->with(["incomeStatements", "balanceSheets", "cashFlows"])
+                        ->first();
+                    $incomeStatement = $lastFinancialPeriod->incomeStatements?->sortByDesc("order")->first();
+                }
+            }
+
             $balanceSheet = $financialPeriodInstance->balanceSheets?->whereIn("order", [$month, $month + 1, $month - 1])->first();
+            if (!$balanceSheet) {
+                $balanceSheet = $financialPeriodInstance->balanceSheets?->sortByDesc("order")->first();
+                if (!$balanceSheet && !empty($lastFinancialPeriod)) {
+                    $balanceSheet = $lastFinancialPeriod->balanceSheets?->sortByDesc("order")->first();
+
+                }
+            }
+
             $cashFlow = $financialPeriodInstance->cashFlows?->whereIn("order", [$month, $month + 1, $month - 1])->first();
+            if (!$cashFlow) {
+                $cashFlow = $financialPeriodInstance->cashFlows?->sortByDesc("order")->first();
+                if (!$cashFlow && !empty($lastFinancialPeriod)) {
+                    $cashFlow = $lastFinancialPeriod->cashFlows?->sortByDesc("order")->first();
+
+                }
+            }
+
             $activity = $financialPeriodInstance->activities?->where("order", $month)->first();
+            if (!$activity) {
+                $activity = $financialPeriodInstance->activities?->where("order", $month - 1)->first();
+            }
 
             $ratio = [];
             //Find net profit from income statement
             if ($incomeStatement) {
-                $pe = $price / ($incomeStatement->net_profit / $incomeStatement->order * 12);
+                $pe = $price / (($incomeStatement->net_profit - $incomeStatement->other_income) / $incomeStatement->order * 12);
                 $ratio["p_e"] = number_format($pe, 2);
             }
 
@@ -49,6 +85,11 @@ class PriceObserver
                 $ratio["p_b"] = number_format($pb, 2);
             }
 
+            /*            if ($balanceSheet) {
+                            $pb = $price / $balanceSheet->;
+                            $ratio["p_b"] = number_format($pb, 2);
+                        }*/
+
             //Find dividend share from cash flow
             if ($cashFlow) {
                 $pd = $price / abs($cashFlow->dividend_payments);
@@ -56,14 +97,29 @@ class PriceObserver
             }
 
             //Find annual sale from activity
-            if ($activity && !empty($activity->predict_year_sales)) {
-                $ps = $price / $activity->predict_year_sales;
+            if ($activity && !empty($activity->analyze->predict_year_sales)) {
+                $ps = $price / $activity->analyze->predict_year_sales;
                 $ratio["p_s"] = number_format($ps, 2);
             } elseif ($activity) {
                 $predictYearSale = $price / $activity->this_month_sales * 12;
                 $ratio["p_s"] = number_format($predictYearSale, 2);
             }
 
+            //Find gold to price from gold18
+            $gold = Gold::query()
+                ->whereBetween("date_time", [
+                    $date->datetime()->format("Y-m-d"),
+                    $date->addDays(2)->datetime()->format("Y-m-d"),
+                ])
+                ->orderBy("date_time")
+                ->firstOr(function () use ($date) {
+                    return Gold::query()
+                        ->whereDate("date_time", $date->subDays(3)->datetime()->format("Y-m-d"))
+                        ->first();
+                });
+            if ($gold) {
+                $ratio["p_g"] = number_format($price / $gold->close, 2);
+            }
             $ratio["financial_statements_order"] = $incomeStatement?->order ?? $balanceSheet?->order ?? $cashFlow?->order;
             $ratio["activity_id"] = $activity?->id;
             $ratio["history_id"] = $history?->id;
@@ -77,7 +133,7 @@ class PriceObserver
                 ], $ratio);
 
         } catch (\Exception $exception) {
-            dd($exception->getMessage());
+            dd($exception->getMessage(), $exception->getLine());
         }
         /*$ratio = [];
         $ratio["gross"] = number_format($incomeStatement->gross_profit / $incomeStatement->total_revenue * 100) . "%";

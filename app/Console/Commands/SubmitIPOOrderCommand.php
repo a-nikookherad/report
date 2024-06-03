@@ -30,16 +30,16 @@ class SubmitIPOOrderCommand extends Command
      */
     public function handle()
     {
-        $startTime = Carbon::createFromTime(8, 44, 59)->format("Y-m-d H:i:s");
-        $endTime = Carbon::createFromTime(8, 45, 3)->format("Y-m-d H:i:s");
+        $startTime = Carbon::createFromTime(8, 45, 0)->format("Y-m-d H:i:s");
+        $endTime = Carbon::createFromTime(8, 45, 5)->format("Y-m-d H:i:s");
         if (Cache::get("successAttempt") >= 1 || !Carbon::now()->isBetween($startTime, $endTime)) {
             exit();
         }
         $data = [
             "order" => [
                 "symbolIsin" => "IRO3GOFZ0001",
-                "price" => "6720",
-                "quantity" => "23216",
+                "price" => "6980",
+                "quantity" => "22351",
                 "side" => 0,
                 "validityType" => 0,
                 "validityDate" => null,
@@ -62,6 +62,9 @@ class SubmitIPOOrderCommand extends Command
                 "message" => ""
             ];
         })->post($url, $data);*/
+
+//        time_nanosleep(0,600000000);
+
         $response = Http::withHeaders($headers)
             ->withToken(config("financial.mofid_token"))
             ->retry(3, 100)

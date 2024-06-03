@@ -32,6 +32,14 @@ return new class extends Migration {
                 ->comment("price to dividend share")
                 ->nullable();
 
+            $table->string("p_g")
+                ->comment("price to gold")
+                ->nullable();
+
+            $table->string("p_f")
+                ->comment("price to physical assets")
+                ->nullable();
+
             $table->unsignedSmallInteger("financial_statements_order")
                 ->nullable();
 

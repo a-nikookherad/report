@@ -9,16 +9,18 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote')->hourly();
 
 Artisan::command('report:import', function () {
-    Artisan::call("report:import-dollar");
+//    Artisan::call("report:import-dollar");
+    set_time_limit(50000);
     Artisan::call("report:import-gold18");
     Artisan::call("report:import-sekee");
+    Artisan::call("report:import-ons");
     Artisan::call("report:import-aed");
-    Artisan::call("report:import-tether");
-    $this->comment("everything be good");
+    Artisan::call("report:calculate-instrument");
+    $this->comment("everything is good");
 });
 
 Schedule::command("submit:ipo")
-    ->dailyAt('8:42')
+    ->dailyAt('8:40')
     ->everySecond()
     ->name("ipo");
 
