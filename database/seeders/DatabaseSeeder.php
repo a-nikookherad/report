@@ -27,8 +27,8 @@ class DatabaseSeeder extends Seeder
 //            InstrumentSeeder::class,
             UpdateInstrumentIncomeStatementFromJsonFilesSeeder::class,
             UpdateBalanceSheetFromJsonFilesSeeder::class,
-//            UpdateCashFlowFromJsonFilesSeeder::class,
-//            UpdateActivitiesFromJsonFilesSeeder::class,
+            UpdateCashFlowFromJsonFilesSeeder::class,
+            UpdateActivitiesFromJsonFilesSeeder::class,
         ]);
     }
 }

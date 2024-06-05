@@ -1,0 +1,26 @@
+{
+    "name": "trader/trade",
+    "description": "for discipline traders",
+    "type": "library",
+    "license": "MIT",
+    "version": "1.0.0",
+    "require": {},
+    "authors": [
+        {
+            "name": "nikookherad",
+            "email": "a.nikookherad@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Trade\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Trade\\TradeServiceProvider"
+            ]
+        }
+    }
+}

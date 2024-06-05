@@ -25,7 +25,7 @@ class CashFlowObserver
             ->first();
 
         if ($gold) {
-            $record["dividend_to_gold"] = number_format($cashFlow->dividend_payments / $gold->close, 1);
+            $record["dividend_to_gold"] = number_format(abs($cashFlow->dividend_payments) / $gold->close, 1);
         }
 
         $incomeStatement = IncomeStatement::query()
@@ -34,7 +34,7 @@ class CashFlowObserver
             ->where("instrument_id", $cashFlow->instrument_id)
             ->first();
         if ($incomeStatement) {
-            $record["dividend_percent"] = number_format(($cashFlow->dividend_payments / $incomeStatement->net_profit) * 100, 1);
+            $record["dividend_percent"] = number_format((abs($cashFlow->dividend_payments) / $incomeStatement->net_profit) * 100, 1);
         }
 
         if (empty($record)) {
