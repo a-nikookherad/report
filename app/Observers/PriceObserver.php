@@ -69,8 +69,13 @@ class PriceObserver
             $ratio = [];
             //Find net profit from income statement
             if ($incomeStatement) {
-                $pe = $price / (($incomeStatement->net_profit - $incomeStatement->other_income) / $incomeStatement->order * 12);
-                $ratio["p_e"] = number_format($pe, 2);
+                if (($incomeStatement->other_income / $incomeStatement->net_profit) > .02) {
+                    $earn = $incomeStatement->operating_income / $incomeStatement->order * 12;
+                } else {
+                    $earn = $incomeStatement->net_profit / $incomeStatement->order * 12;
+                }
+                $ratio["p_e"] = number_format($price / $earn, 2);
+                $ratio["grows_potential_percent"] = number_format($earn * config("financial.market_price_to_earn") / $price, 2);
             }
 
             //Find total asset from balance sheet

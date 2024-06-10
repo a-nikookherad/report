@@ -33,13 +33,14 @@ class SubmitIPOOrderCommand extends Command
         $startTime = Carbon::createFromTime(8, 45, 0)->format("Y-m-d H:i:s");
         $endTime = Carbon::createFromTime(8, 45, 5)->format("Y-m-d H:i:s");
         if (Cache::get("successAttempt") >= 1 || !Carbon::now()->isBetween($startTime, $endTime)) {
+//        if (false) {
             exit();
         }
         $data = [
             "order" => [
                 "symbolIsin" => "IRO3GOFZ0001",
-                "price" => "6980",
-                "quantity" => "22351",
+                "price" => "7530",
+                "quantity" => "5452",
                 "side" => 0,
                 "validityType" => 0,
                 "validityDate" => null,

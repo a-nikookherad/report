@@ -17,6 +17,7 @@ class PricesAnalysis extends Model
         "p_d",
         "p_g",
         "p_f",
+        "grows_potential_percent",
         "financial_statements_order",
         "history_id",
         "activity_id",

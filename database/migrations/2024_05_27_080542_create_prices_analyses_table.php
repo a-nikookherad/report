@@ -32,6 +32,10 @@ return new class extends Migration {
                 ->comment("price to dividend share")
                 ->nullable();
 
+            $table->float("grows_potential_percent")
+                ->comment("potential of grows")
+                ->nullable();
+
             $table->string("p_g")
                 ->comment("price to gold")
                 ->nullable();

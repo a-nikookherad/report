@@ -44,4 +44,14 @@ return [
     */
     'mofid_token' => env('mofid_token'),
     'mofid_url' => env('mofid_url', "https://api-mts.orbis.easytrader.ir/chart/api/datafeed/history"),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Market total Price to Earn
+    |--------------------------------------------------------------------------
+    |
+    | Market default price to earn
+    |
+    */
+    'market_price_to_earn' => env('market_price_to_earn', 7),
 ];
