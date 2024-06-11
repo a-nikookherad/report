@@ -30,8 +30,8 @@ class SubmitIPOOrderCommand extends Command
      */
     public function handle()
     {
-        $startTime = Carbon::createFromTime(8, 45, 0)->format("Y-m-d H:i:s");
-        $endTime = Carbon::createFromTime(8, 45, 5)->format("Y-m-d H:i:s");
+        $startTime = Carbon::createFromFormat("H:i:s.v", "8:45:00.000")->format("Y-m-d H:i:s.v");
+        $endTime = Carbon::createFromFormat("H:i:s.v", "8:45:02.000")->format("Y-m-d H:i:s.v");
         if (Cache::get("successAttempt") >= 1 || !Carbon::now()->isBetween($startTime, $endTime)) {
 //        if (false) {
             exit();
