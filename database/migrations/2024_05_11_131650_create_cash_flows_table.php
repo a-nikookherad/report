@@ -55,9 +55,6 @@ return new class extends Migration {
             $table->unsignedSmallInteger("order")
                 ->nullable();
 
-            $table->json("script")
-                ->nullable();
-
             $table->unsignedBigInteger("instrument_id")
                 ->index();
             $table->foreign("instrument_id")
@@ -70,6 +67,8 @@ return new class extends Migration {
                 ->references("id")
                 ->on("financial_periods");
 
+            $table->json("script")
+                ->nullable();
             $table->timestamps();
         });
     }

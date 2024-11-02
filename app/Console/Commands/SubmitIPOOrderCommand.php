@@ -30,10 +30,51 @@ class SubmitIPOOrderCommand extends Command
      */
     public function handle()
     {
-        $startTime = Carbon::createFromFormat("H:i:s.v", "8:45:00.000")->format("Y-m-d H:i:s.v");
+        $startTime = Carbon::createFromTime(8, 45, 0)->format("Y-m-d H:i:s");
+        $endTime = Carbon::createFromTime(8, 45, 5)->format("Y-m-d H:i:s");
+        if (Cache::get("successAttempt") >= 1 || !Carbon::now()->isBetween($startTime, $endTime)) {
+//    if (false) {
+            return 0;
+        }
+
+        //shafam
+        /*$ipoLogic = new \App\Logics\IPO\IPOLogic([
+            "symbolIsin" => "IRO3GOFZ0001",
+            "price" => "7980",
+            "quantity" => "739",
+            "side" => 0,
+            "validityType" => 0,
+            "validityDate" => null,
+            "orderFrom" => 34,
+        ]);*/
+
+        //khavar
+        $ipoLogic = new \App\Logics\IPO\IPOLogic([
+            "symbolIsin" => "IRO3IKDP0001",
+            "price" => "2000",
+            "quantity" => "120000",
+            "side" => 1,
+            "validityType" => 0,
+            "validityDate" => null,
+            "orderFrom" => 34,
+        ]);
+        $response = $ipoLogic->send()
+//    $response = $ipoLogic->fakeSend()
+            ->log()
+            ->response();
+
+        if ($response->successful() && $response->object()->isSuccessful) {
+            if (Cache::has("successAttempt")) {
+                Cache::put("successAttempt", Cache::get("successAttempt") + 1, 600);
+            } else {
+                Cache::put("successAttempt", 1, 600);
+            }
+        }
+        return 0;
+
+/*        $startTime = Carbon::createFromFormat("H:i:s.v", "8:45:00.000")->format("Y-m-d H:i:s.v");
         $endTime = Carbon::createFromFormat("H:i:s.v", "8:45:02.000")->format("Y-m-d H:i:s.v");
         if (Cache::get("successAttempt") >= 1 || !Carbon::now()->isBetween($startTime, $endTime)) {
-//        if (false) {
             exit();
         }
         $data = [
@@ -56,15 +97,6 @@ class SubmitIPOOrderCommand extends Command
             "Referer" => "https://d.orbis.easytrader.ir",
             "sec-ch-ua-platform" => "Windows",
         ];
-        /*$response = Http::fake(function () {
-            return [
-                "isSuccessful" => true,
-                "id" => "1121AE0tpkf1WqFp",
-                "message" => ""
-            ];
-        })->post($url, $data);*/
-
-//        time_nanosleep(0,600000000);
 
         $response = Http::withHeaders($headers)
             ->withToken(config("financial.mofid_token"))
@@ -87,6 +119,6 @@ class SubmitIPOOrderCommand extends Command
         $record["body"] = $response->body();
 
         IPO::query()
-            ->create($record);
+            ->create($record);*/
     }
 }

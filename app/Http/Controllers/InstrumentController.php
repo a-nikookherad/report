@@ -7,10 +7,12 @@ use App\Http\Requests\StoreInstrumentRequest;
 use App\Logics\Bourse\Normalize\ActivityDataNormalizeLogic;
 use App\Logics\Bourse\Normalize\BalanceSheetDataNormalizeLogic;
 use App\Logics\Bourse\Normalize\CashFlowDataNormalizeLogic;
+use App\Logics\Bourse\Normalize\EquityDataNormalizeLogic;
 use App\Logics\Bourse\Normalize\IncomeStatementDataNormalizeLogic;
 use App\Models\Bourse\Activity;
 use App\Models\Bourse\BalanceSheet;
 use App\Models\Bourse\CashFlow;
+use App\Models\Bourse\Equity;
 use App\Models\Bourse\FinancialPeriod;
 use App\Models\Bourse\Group;
 use App\Models\Bourse\History;
@@ -164,6 +166,7 @@ class InstrumentController extends Controller
                 ], 400);
             }
 
+            //Get instrument
             $instrumentInstance = Instrument::query()
                 ->where("id", $request->instrument_id)
                 ->with("financialPeriods")
@@ -180,13 +183,19 @@ class InstrumentController extends Controller
             $xlsxFile = $filePath . "/xlsx/" . $request->financial_report_type . "/" . $date . ".xlsx";
 
             if ($request->financial_report_type == "activity") {
-                $this->makeXlsxFromActivityAndStoreInDatabase($dataSource, $instrumentInstance, $xlsxFile);
+                $data = $this->storeActivityInDatabase($dataSource, $instrumentInstance);
             } elseif ($request->financial_report_type == "balance_sheet") {
-                $this->makeXlsxFromBalanceSheetAndStoreInDatabase($dataSource, $instrumentInstance, $xlsxFile);
+                $data = $this->storeBalanceSheetInDatabase($dataSource, $instrumentInstance);
             } elseif ($request->financial_report_type == "income_statement") {
-                $this->makeXlsxFromIncomeStatementAndStoreInDatabase($dataSource, $instrumentInstance, $xlsxFile);
+                $data = $this->storeIncomeStatementInDatabase($dataSource, $instrumentInstance);
             } elseif ($request->financial_report_type == "cash_flow") {
-                $this->makeXlsxFromCashFlowAndStoreInDatabase($dataSource, $instrumentInstance, $xlsxFile);
+                $data = $this->storeCashFlowInDatabase($dataSource, $instrumentInstance);
+            } elseif ($request->financial_report_type == "changes_in_property_rights") {
+                $data = $this->storeEquityInDatabase($dataSource, $instrumentInstance);
+            }
+
+            if (!empty($data)) {
+                Excel::write($xlsxFile, $data);
             }
         }
         return response()->json([
@@ -239,7 +248,7 @@ class InstrumentController extends Controller
         }
     }
 
-    private function makeXlsxFromActivityAndStoreInDatabase(mixed $dataSource, $instrumentInstance, string $xlsxFile)
+    private function storeActivityInDatabase(mixed $dataSource, $instrumentInstance)
     {
         $activityLogic = resolve(ActivityDataNormalizeLogic::class, [
             "dataSource" => $dataSource
@@ -248,11 +257,12 @@ class InstrumentController extends Controller
         $record = $activityLogic->normalize();
         $record["instrument_id"] = $instrumentInstance->id;
         Activity::query()
-            ->updateOrCreate(["order" => $record["order"], "financial_period_id" => $record["financial_period_id"]], $record);
-        Excel::write($xlsxFile, $activityLogic->getData());
+            ->updateOrCreate(["instrument_id" => $record["instrument_id"], "order" => $record["order"], "financial_period_id" => $record["financial_period_id"]], $record);
+        return $activityLogic->getData();
+
     }
 
-    private function makeXlsxFromIncomeStatementAndStoreInDatabase(mixed $dataSource, $instrumentInstance, string $xlsxFile)
+    private function storeIncomeStatementInDatabase(mixed $dataSource, $instrumentInstance)
     {
         $incomeStatementLogic = resolve(IncomeStatementDataNormalizeLogic::class, [
             "dataSource" => $dataSource
@@ -261,12 +271,12 @@ class InstrumentController extends Controller
         $record = $incomeStatementLogic->normalize();
         $record["instrument_id"] = $instrumentInstance->id;
         IncomeStatement::query()
-            ->updateOrCreate(["financial_period_id" => $record["financial_period_id"], "order" => $record["order"]], $record);
+            ->updateOrCreate(["instrument_id" => $record["instrument_id"], "financial_period_id" => $record["financial_period_id"], "order" => $record["order"]], $record);
 
-        Excel::write($xlsxFile, $incomeStatementLogic->getData());
+        return $incomeStatementLogic->getData();
     }
 
-    private function makeXlsxFromBalanceSheetAndStoreInDatabase(mixed $dataSource, $instrumentInstance, string $xlsxFile): void
+    private function storeBalanceSheetInDatabase(mixed $dataSource, $instrumentInstance)
     {
         $balanceSheetLogic = resolve(BalanceSheetDataNormalizeLogic::class, [
             "dataSource" => $dataSource
@@ -275,12 +285,11 @@ class InstrumentController extends Controller
         $record = $balanceSheetLogic->normalize();
         $record["instrument_id"] = $instrumentInstance->id;
         BalanceSheet::query()
-            ->updateOrCreate(["financial_period_id" => $record["financial_period_id"], "order" => $record["order"]], $record);
-
-        Excel::write($xlsxFile, $balanceSheetLogic->getData());
+            ->updateOrCreate(["instrument_id" => $record["instrument_id"], "financial_period_id" => $record["financial_period_id"], "order" => $record["order"]], $record);
+        return $balanceSheetLogic->getData();
     }
 
-    private function makeXlsxFromCashFlowAndStoreInDatabase(mixed $dataSource, $instrumentInstance, string $xlsxFile)
+    private function storeCashFlowInDatabase(mixed $dataSource, $instrumentInstance)
     {
         $cashFlowLogic = resolve(CashFlowDataNormalizeLogic::class, [
             "dataSource" => $dataSource
@@ -290,7 +299,19 @@ class InstrumentController extends Controller
         $record["instrument_id"] = $instrumentInstance->id;
         CashFlow::query()
             ->updateOrCreate(["financial_period_id" => $record["financial_period_id"], "order" => $record["order"]], $record);
+        return $cashFlowLogic->getData();
+    }
 
-        Excel::write($xlsxFile, $cashFlowLogic->getData());
+    private function storeEquityInDatabase(mixed $dataSource, $instrumentInstance)
+    {
+        $equityLogic = resolve(EquityDataNormalizeLogic::class, [
+            "dataSource" => $dataSource
+        ]);
+
+        $record = $equityLogic->normalize();
+        $record["instrument_id"] = $instrumentInstance->id;
+        Equity::query()
+            ->updateOrCreate(["instrument_id" => $record["instrument_id"], "financial_period_id" => $record["financial_period_id"], "order" => $record["order"]], $record);
+        return $equityLogic->getData();
     }
 }

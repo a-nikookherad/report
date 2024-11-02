@@ -22,6 +22,7 @@
                                 <option value="balance_sheet">صورت وضعیت مالی</option>
                                 <option value="income_statement">صورت سود و زیان</option>
                                 <option value="cash_flow">صورت جریان های نقدی</option>
+                                <option value="changes_in_property_rights">صورت حقوق مالکانه</option>
                             </select>
                             <label for="financial_report_type">Select financial report type</label>
                         </div>
@@ -94,6 +95,7 @@
                         // console.error("error", xhr.responseText);
                     }
                 });
+                // $('#instrument_json').val("");
             });
 
         </script>

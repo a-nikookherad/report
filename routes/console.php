@@ -4,6 +4,7 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
@@ -24,36 +25,46 @@ Artisan::command('report:import', function () {
 Schedule::call(function () {
     $startTime = Carbon::createFromTime(8, 45, 0)->format("Y-m-d H:i:s");
     $endTime = Carbon::createFromTime(8, 45, 2)->format("Y-m-d H:i:s");
-    if (Cache::get("successAttempt") >= 1 || !Carbon::now()->isBetween($startTime, $endTime)) {
-//    if (false) {
-        return 0;
+    if (!Carbon::now()->isBetween($startTime, $endTime)) {
+        exit();
     }
-    $ipoLogic = new \App\Logics\IPO\IPOLogic([
-        "symbolIsin" => "IRO3GOFZ0001",
-        "price" => "7680",
-        "quantity" => "5345",
-        "side" => 0,
-        "validityType" => 0,
-        "validityDate" => null,
-        "orderFrom" => 34,
-    ]);
-    $response=$ipoLogic->send()
-//    $response = $ipoLogic->fakeSend()
-        ->log()
-        ->response();
-    if ($response->successful() && $response->object()->isSuccessful) {
-        if (Cache::has("successAttempt")) {
-            Cache::put("successAttempt", Cache::get("successAttempt") + 1, 600);
-        } else {
-            Cache::put("successAttempt", 1, 600);
-        }
-    }
-    return 0;
+    $data = [
+        "order" => [
+            "symbolIsin" => "IRO3GOFZ0001",
+            "price" => "7530",
+            "quantity" => "5452",
+            "side" => 0,
+            "validityType" => 0,
+            "validityDate" => null,
+            "orderFrom" => 34,
+        ]
+    ];
+    $url = "https://api-mts.orbis.easytrader.ir/core/api/v2/order";
+    $headers = [
+        "sec-ch-ua" => '"Not_A Brand";v="99", "Google Chrome";v="109", "Chromium";v="109"',
+        "User-Agent" => "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
+        "Content-Type" => "application/json",
+        "Accept" => "application/json",
+        "Referer" => "https://d.orbis.easytrader.ir",
+        "sec-ch-ua-platform" => "Windows",
+    ];
+
+    Http::withHeaders($headers)
+        ->withToken(config("financial.mofid_token"))
+        ->post($url, $data);
+
 })
+    ->dailyAt("9")
+    ->everySecond()
+//    ->everyMiroSecond()
+    ->name("ipo_khavar")
+    ->withoutOverlapping();
+
+Schedule::command("submit:ipo")
     ->dailyAt("8")
 //    ->everySecond()
     ->everyMiroSecond()
-//    ->runInBackground()
+    ->runInBackground()
     ->name("ipo");
 //    ->withoutOverlapping();
 
