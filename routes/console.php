@@ -13,13 +13,24 @@ Artisan::command('inspire', function () {
 
 Artisan::command('report:import', function () {
 //    Artisan::call("report:import-dollar");
-    set_time_limit(50000);
+    set_time_limit(60000);
     Artisan::call("report:import-gold18");
+    $this->comment("gold18 imported");
+
     Artisan::call("report:import-sekee");
+    $this->comment("sekee imported");
+
     Artisan::call("report:import-ons");
+    $this->comment("ons imported");
+
     Artisan::call("report:import-aed");
+    $this->comment("aed imported");
+
+    Artisan::call("report:import-dollar");
+    $this->comment("dollar imported");
+
     Artisan::call("report:calculate-instrument");
-    $this->comment("everything is good");
+    $this->comment("everything is imported successfully");
 });
 
 Schedule::call(function () {
@@ -60,11 +71,11 @@ Schedule::call(function () {
     ->name("ipo_khavar")
     ->withoutOverlapping();
 
-Schedule::command("submit:ipo")
+/*Schedule::command("submit:ipo")
     ->dailyAt("8")
 //    ->everySecond()
     ->everyMiroSecond()
     ->runInBackground()
-    ->name("ipo");
+    ->name("ipo");*/
 //    ->withoutOverlapping();
 

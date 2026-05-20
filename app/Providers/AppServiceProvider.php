@@ -29,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->loadMigrationsFrom(database_path("migrations/instruments"));
         History::observe(PriceObserver::class);
         Activity::observe(ActivityObserver::class);
         IncomeStatement::observe(IncomeStatementObserver::class);
