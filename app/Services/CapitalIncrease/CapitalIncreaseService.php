@@ -2,7 +2,7 @@
 
 namespace App\Services\CapitalIncrease;
 
-class CapitalIncrease
+class CapitalIncreaseService
 {
 
 }
