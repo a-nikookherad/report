@@ -25,13 +25,13 @@ return new class extends Migration {
             $table->date("end_date")
                 ->nullable();
 
-            $table->unsignedBigInteger("share_count")
-                ->comment("تعداد سهام")
-                ->nullable();
-
             $table->boolean("close")
                 ->comment("وضعیت دوره مالی")
                 ->default(false);
+
+            $table->unsignedBigInteger("share_count")
+                ->comment("تعداد سهام")
+                ->nullable();
 
             $table->float("industry_pe")
                 ->comment("price to earn")

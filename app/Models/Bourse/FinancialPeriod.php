@@ -9,21 +9,16 @@ class FinancialPeriod extends Model
 {
     use HasFactory;
 
-    protected $with = [
-        "balanceSheets",
-        "incomeStatements",
-        "cashFlows",
-        "activities",
-    ];
     protected $fillable = [
         "solar_start_date",
         "solar_end_date",
         "start_date",
         "end_date",
-        "share_count",
         "close",
-        "industry_pe",
-        "instrument_id",
+    ];
+    protected $casts = [
+        "start_date" => "datetime",
+        "end_date" => "datetime",
     ];
 
     public function instrument()
