@@ -3,6 +3,7 @@
 namespace App\Logics\Bourse\Normalize;
 
 use App\Models\Bourse\FinancialPeriod;
+use App\Services\DataExtractors\NormalizeAbstract;
 use Hekmatinasser\Verta\Facades\Verta;
 
 class BalanceSheetDataNormalizeLogic extends NormalizeAbstract

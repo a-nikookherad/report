@@ -21,6 +21,13 @@ return new class extends Migration
             $table->unsignedBigInteger("dividend_distribution")
                 ->comment("تقسیم سود سالانه")
                 ->nullable();
+
+            $table->unsignedBigInteger("financial_period_id")
+                ->index("financial_period_id")
+                ->nullable();
+            $table->foreign("financial_period_id")
+                ->references("id")
+                ->on("financial_periods");
             $table->timestamps();
         });
     }

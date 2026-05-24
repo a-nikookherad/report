@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Logics\Bourse\Normalize\ActivityDataNormalizeLogic;
 use App\Models\Bourse\Activity;
 use App\Models\Bourse\Instrument;
+use App\Services\DataExtractors\Activities\ActivityDataExtractor;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\App;
 
@@ -29,7 +29,7 @@ class UpdateActivitiesFromJsonFilesSeeder extends Seeder
                     continue;
                 }
                 $dataSource = json_decode(file_get_contents($activityDataSource), true);
-                $activityLogic = App::make(ActivityDataNormalizeLogic::class, [
+                $activityLogic = App::make(ActivityDataExtractor::class, [
                     "dataSource" => $dataSource
                 ]);
                 $record = $activityLogic->normalize();

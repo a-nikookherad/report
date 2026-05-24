@@ -7,14 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class FinancialPeriod extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         "solar_start_date",
         "solar_end_date",
         "start_date",
         "end_date",
-        "close",
     ];
     protected $casts = [
         "start_date" => "datetime",
@@ -44,10 +41,5 @@ class FinancialPeriod extends Model
     public function activities()
     {
         return $this->hasMany(Activity::class, "financial_period_id");
-    }
-
-    public function ratios()
-    {
-        return $this->hasMany(Ratio::class, "financial_period_id");
     }
 }

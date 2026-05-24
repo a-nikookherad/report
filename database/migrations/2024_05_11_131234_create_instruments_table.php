@@ -32,12 +32,6 @@ return new class extends Migration {
             $table->string("description")
                 ->nullable();
 
-            $table->unsignedBigInteger("group_id")
-                ->nullable();
-            $table->foreign("group_id")
-                ->references("id")
-                ->on("groups");
-
             $table->unsignedBigInteger("industry_id")
                 ->nullable()
                 ->index();
@@ -45,6 +39,18 @@ return new class extends Migration {
                 ->references("id")
                 ->on("industries");
 
+            $table->unsignedBigInteger("group_id")
+                ->nullable();
+            $table->foreign("group_id")
+                ->references("id")
+                ->on("groups");
+
+            $table->unsignedBigInteger("financial_period_id")
+                ->index("financial_period_id")
+                ->nullable();
+            $table->foreign("financial_period_id")
+                ->references("id")
+                ->on("financial_periods");
             $table->timestamps();
         });
     }

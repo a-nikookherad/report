@@ -56,7 +56,12 @@ return new class extends Migration {
                 ->comment("سرمایه")
                 ->nullable();
 
-            $table->unsignedSmallInteger("order")
+            $table->enum("order", [
+                1,
+                2,
+                3,
+                4
+            ])
                 ->nullable();
 
             $table->json("script")

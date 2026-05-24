@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\InstrumentInfoStoreRequest;
 use App\Http\Requests\StoreInstrumentRequest;
-use App\Logics\Bourse\Normalize\ActivityDataNormalizeLogic;
 use App\Logics\Bourse\Normalize\BalanceSheetDataNormalizeLogic;
 use App\Logics\Bourse\Normalize\CashFlowDataNormalizeLogic;
 use App\Logics\Bourse\Normalize\EquityDataNormalizeLogic;
@@ -19,11 +18,11 @@ use App\Models\Bourse\History;
 use App\Models\Bourse\IncomeStatement;
 use App\Models\Bourse\Industry;
 use App\Models\Bourse\Instrument;
-use App\Models\Instruments\Dollar;
-use App\Models\Instruments\Gold;
+use App\Repositories\FileSystemRepo\FileSystemRepo;
+use App\Services\DataExtractors\Activities\ActivityDataExtractor;
 use App\Tools\Excel\Facades\Excel;
+use App\Tools\PersianDate\PersianDate;
 use Hekmatinasser\Verta\Facades\Verta;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -155,10 +154,10 @@ class InstrumentController extends Controller
 
     public function storeInfo(InstrumentInfoStoreRequest $request)
     {
-
         if ($request->instrument_json) {
             $dataSource = json_decode($request->instrument_json, true);
 
+            //check legality of input
             if (!strstr(strtolower($dataSource["sheets"][0]["title_En"]), str_replace("_", " ", $request->financial_report_type))) {
                 return response()->json([
                     "message" => "please select right financial report type",
@@ -172,15 +171,17 @@ class InstrumentController extends Controller
                 ->with("financialPeriods")
                 ->first();
 
-            $date = Verta::parse($dataSource["periodEndToDate"])->format("Y-m-d");
+            $date = PersianDate::gregorianToSolar($dataSource["periodEndToDate"]);
 
             //Make related folder if not exists
             $filePath = storage_path(config("financial.folder") . "/" . $instrumentInstance->slug);
-            $jsonFile = $filePath . "/json/" . $request->financial_report_type;
-            $this->makeJsonFileIfNotExists($jsonFile, $date, $dataSource);
+            $jsonFilePath = $filePath . "/json/" . $request->financial_report_type;
+            $jsonFileName = $jsonFilePath . "/" . $date . ".json";
+            FileSystemRepo::storeJson($jsonFilePath, $dataSource, $jsonFileName);
 
             //Make xlsx file
-            $xlsxFile = $filePath . "/xlsx/" . $request->financial_report_type . "/" . $date . ".xlsx";
+            $xlsxFilePath = $filePath . "/xlsx/" . $request->financial_report_type;
+            $xlsxFileName = $xlsxFilePath . "/" . $date . ".xlsx";
 
             if ($request->financial_report_type == "activity") {
                 $data = $this->storeActivityInDatabase($dataSource, $instrumentInstance);
@@ -195,7 +196,8 @@ class InstrumentController extends Controller
             }
 
             if (!empty($data)) {
-                Excel::write($xlsxFile, $data);
+                //Excel::write($xlsxFilePath, $data);
+                FileSystemRepo::storeXlsx($xlsxFilePath, $data, $xlsxFileName);
             }
         }
         return response()->json([
@@ -237,20 +239,9 @@ class InstrumentController extends Controller
         }
     }
 
-    private function makeJsonFileIfNotExists($filePath, $date, mixed $dataSource): void
-    {
-        if (!file_exists($filePath)) {
-            mkdir($filePath, 0777, true);
-        }
-        $fileName = $filePath . "/" . $date . ".json";
-        if (!file_exists($fileName)) {
-            file_put_contents($fileName, json_encode($dataSource));
-        }
-    }
-
     private function storeActivityInDatabase(mixed $dataSource, $instrumentInstance)
     {
-        $activityLogic = resolve(ActivityDataNormalizeLogic::class, [
+        $activityLogic = resolve(ActivityDataExtractor::class, [
             "dataSource" => $dataSource
         ]);
 

@@ -20,9 +20,18 @@ return new class extends Migration {
             $table->unsignedSmallInteger("progress_estimate")
                 ->comment("percentage")
                 ->nullable();
+
+            $table->dateTime("start_date")
+                ->nullable();
             $table->dateTime("estimate_completion")
                 ->nullable();
 
+            $table->unsignedBigInteger("financial_period_id")
+                ->index("financial_period_id")
+                ->nullable();
+            $table->foreign("financial_period_id")
+                ->references("id")
+                ->on("financial_periods");
             $table->timestamps();
         });
     }

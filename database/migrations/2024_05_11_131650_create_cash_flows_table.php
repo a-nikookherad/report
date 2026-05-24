@@ -52,7 +52,12 @@ return new class extends Migration {
                 ->comment("خالص افزايش (کاهش) در موجودي نقد")
                 ->nullable();
 
-            $table->unsignedSmallInteger("order")
+            $table->enum("order",[
+                1,
+                2,
+                3,
+                4
+            ])
                 ->nullable();
 
             $table->unsignedBigInteger("instrument_id")

@@ -1,21 +1,41 @@
 <?php
 
-namespace App\Logics\Bourse\Normalize;
+namespace App\Services\DataExtractors\Activities;
 
 use App\Models\Bourse\FinancialPeriod;
+use App\Services\DataExtractors\NormalizeAbstract;
+use App\Tools\PersianDate\PersianDate;
 use Hekmatinasser\Verta\Facades\Verta;
 
-class ActivityDataNormalizeLogic extends NormalizeAbstract
+class ActivityDataExtractor extends NormalizeAbstract
 {
+    private const TABLE_NAME_EN = "Production and sales";
+    private const TABLE_NAME_FA = "تولید و فروش";
+    private static array $fields = [
+        "جمع فروش داخلی" => 100000,
+        "جمع فروش صادراتی" => 100000,
+        "جمع" => 100000
+    ];
+
     public function __construct($dataSource)
     {
         $this->dataSource = $dataSource;
-        $this->prepareData();
+
+        //todo this line of code is deprecated remove later
+        $this->prepareData(self::TABLE_NAME_EN, self::TABLE_NAME_FA);
     }
 
-    public function getData(): array
+    public function getFields(): array
     {
-        return $this->data;
+        $table = $this->filterTableByName(self::TABLE_NAME_EN, self::TABLE_NAME_FA);
+        $response = [];
+        foreach (self::$fields as $item => $unit) {
+            $response[$item] = $table->getCelByValue($item)["value"] * $unit;
+        }
+//        $response["order"] = (int)Verta::parse($this->dataSource["periodEndToDate"])->format("m");
+        $response["order"] = (int)PersianDate::gregorianToSolar($this->dataSource["periodEndToDate"], "m");
+        $response["financial_period_id"] = $this->getFinancialPeriodId();
+        return $response;
     }
 
     public function normalize(): array
@@ -32,8 +52,11 @@ class ActivityDataNormalizeLogic extends NormalizeAbstract
                     break;
                 case "جمع":
                     $totalRowNumber = trim($coordinate, "A");
+                    break;
             }
             foreach ($this->cols as $col) {
+//                dd($coordinate,$col);
+//                dump($coordinate,$col.$totalRowNumber);
                 if (!empty($value) && !empty($totalRowNumber) && $coordinate == $col . $totalRowNumber) {
                     $neededCol->push($col);
                 }
@@ -44,17 +67,20 @@ class ActivityDataNormalizeLogic extends NormalizeAbstract
         /*        if ($neededCol->isEmpty()) {
 
                 }*/
-
         if ($neededCol->count() == 5) {
             $neededCol->forget([0, 1, 4]);
         } elseif ($neededCol->count() == 3) {
             $neededCol->forget([2]);
         }
 
+
+        //فروش داخلی
         if (!empty($domesticRowNumber)) {
             $record["this_month_domestic_sales"] = $this->data[$neededCol->first() . $domesticRowNumber] * 100000;
             $record["total_domestic_sales_for_now"] = $this->data[$neededCol->last() . $domesticRowNumber] * 100000;
         }
+
+        //فروش صادراتی
         if (!empty($exportRowNumber)) {
             $record["this_month_export_sales"] = $this->data[$neededCol->first() . $exportRowNumber] * 100000;
             $record["total_export_sales_for_now"] = $this->data[$neededCol->last() . $exportRowNumber] * 100000;
@@ -65,8 +91,9 @@ class ActivityDataNormalizeLogic extends NormalizeAbstract
         $record["average_sales"] = $record["total_sales_for_now"] / $record["order"];
         $record["predict_year_sales"] = $record["total_sales_for_now"] / $record["order"] * 12;
 
-        $record["script"] = json_encode($this->dataSource);
+//        $record["script"] = json_encode($this->dataSource);
         $record["financial_period_id"] = $this->getFinancialPeriodId();
+        dd($record);
         return $record;
     }
 
@@ -77,6 +104,6 @@ class ActivityDataNormalizeLogic extends NormalizeAbstract
         return FinancialPeriod::query()
             ->where("solar_start_date", ">=", $start_date)
             ->where("solar_end_date", "<=", $end_date)
-            ->first()->id;
+            ->first()?->id;
     }
 }
