@@ -22,6 +22,8 @@ class BalanceSheet extends Model
         "total_current_liabilities",
         "total_liabilities",
         "order",
+        "period_end_date",
+        "year_end_date",
         "instrument_id",
         "financial_period_id",
     ];

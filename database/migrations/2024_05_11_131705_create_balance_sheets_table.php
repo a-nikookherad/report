@@ -41,7 +41,7 @@ return new class extends Migration {
                 ->comment("سود انباشته")
                 ->nullable();
 
-            $table->unsignedBigInteger("total_equity")
+            $table->bigInteger("total_equity")
                 ->comment("مجموع حقوق مالکانه")
                 ->nullable();
 
@@ -63,6 +63,14 @@ return new class extends Migration {
                 9,
                 12
             ])
+                ->nullable();
+
+            $table->date("period_end_date")
+                ->comment("دوره عملیاتی")
+                ->nullable();
+
+            $table->date("year_end_date")
+                ->comment("سال مالی")
                 ->nullable();
 
             $table->unsignedBigInteger("instrument_id")

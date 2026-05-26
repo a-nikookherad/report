@@ -15,37 +15,6 @@ abstract class NormalizeAbstract
     private int $rowSequence;
     protected array $response = [];
 
-    //todo deprecate code
-    protected $data;
-    protected $cols = [
-        "B",
-        "C",
-        "D",
-        "E",
-        "F",
-        "G",
-        "H",
-        "I",
-        "J",
-        "K",
-        "L",
-        "M",
-        "N",
-        "O",
-        "P",
-        "Q",
-        "R",
-        "S",
-        "T",
-        "U",
-        "V",
-        "W",
-        "X",
-        "Y",
-        "Z",
-    ];
-
-
     public function filterTableByName(string $tableNameEn = null, string $tableNameFa = null): self
     {
 //        $tables=[];
@@ -104,28 +73,4 @@ abstract class NormalizeAbstract
             });
         return $financialPeriod?->id;
     }
-
-    protected function prepareData(string $tableNameEn, string $tableNameFa = null): object
-    {
-        foreach ($this->dataSource["sheets"][0]["tables"] as $table) {
-            if (
-                ($table["title_Fa"] == $tableNameFa || $table["title_En"] == $tableNameEn)
-            ) {
-//                dd($table["cells"]);
-                foreach ($table["cells"] as $cel) {
-                    $this->data[$cel["address"]] = $cel["value"];
-                }
-            }
-        }
-        $this->data["yearEndToDate"] = $this->dataSource["yearEndToDate"];
-        $this->data["periodEndToDate"] = $this->dataSource["periodEndToDate"];
-        return $this;
-    }
-
-    public function getData(): array
-    {
-        return $this->data;
-    }
-
-
 }

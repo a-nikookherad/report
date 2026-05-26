@@ -12,19 +12,20 @@ return new class extends Migration {
     {
         Schema::create('income_statements', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger("total_revenue")
-                ->comment("درآمد کل")
+
+            $table->bigInteger("operating_revenue")
+                ->comment("درآمدهاي عملياتي")
                 ->nullable();
 
-            $table->bigInteger("cost_of_revenue")
-                ->comment("بهای تمام شده")
+            $table->bigInteger("cost_of_operating_revenue")
+                ->comment("بهای تمام شده درآمدهای عملیاتی")
                 ->nullable();
 
-            $table->bigInteger("gross_profit")
-                ->comment("سود ناخالص")
+            $table->bigInteger("gross_profit_loss")
+                ->comment("سود(زیان) ناخالص")
                 ->nullable();
 
-            $table->bigInteger("operation_expenses")
+            $table->bigInteger("selling_general_administrative_expenses")
                 ->comment("هزینه های فروش، ادارى و عمومى")
                 ->nullable();
 
@@ -32,39 +33,65 @@ return new class extends Migration {
                 ->comment("سایر درآمدهای عملیاتی")
                 ->nullable();
 
-            $table->bigInteger("operating_income")
-                ->comment("درآمد عملیاتی")
+            $table->bigInteger("other_operating_expenses")
+                ->comment("سایر هزینه‌های عملیاتی")
                 ->nullable();
 
-            $table->bigInteger("financial_cost")
+            $table->bigInteger("operating_profit_loss")
+                ->comment("سود(زیان) عملیاتی")
+                ->nullable();
+
+            $table->bigInteger("finance_costs")
                 ->comment("هزینه های مالی")
                 ->nullable();
 
-            $table->bigInteger("other_income")
-                ->comment("سایر درآمدهای غیر عملیاتی")
+            $table->bigInteger("other_non_operating_income_expenses")
+                ->comment("سایر درآمدها و هزینه های غیر عملیاتی")
                 ->nullable();
 
-            $table->bigInteger("tax")
-                ->comment("مالیات بر درآمد")
+            $table->bigInteger("non_operating_investment_income")
+                ->comment("سایر درآمدها و هزینه‌های غیرعملیاتی- درآمد سرمایه‌گذاری‌ها")
                 ->nullable();
 
-            $table->bigInteger("net_profit")
-                ->comment("سود خالص")
+            $table->bigInteger("non_operating_miscellaneous_items")
+                ->comment("سایر درآمدها و هزینه‌های غیرعملیاتی- اقلام متفرقه")
                 ->nullable();
 
-            $table->bigInteger("fund")
+            $table->bigInteger("current_year_tax")
+                ->comment("بدهی مالیات سال جاری")
+                ->nullable();
+
+            $table->bigInteger("prior_years_tax")
+            ->comment("بدهی مالیات سنوات قبل")
+                ->nullable();
+
+            $table->bigInteger("net_profit_loss_from_continuing_operations")
+            ->comment("سود(زیان) خالص عملیات مستمر")
+                ->nullable();
+
+            $table->bigInteger("net_profit_loss")
+            ->comment("سود خالص")
+                ->nullable();
+
+            $table->bigInteger("capital")
                 ->comment("سرمایه")
                 ->nullable();
 
-            $table->enum("order", [
-                1,
-                2,
+            $table->enum("period_order", [
                 3,
-                4
+                6,
+                9,
+                12
             ])
+                ->comment("دوره گزارش‌دهی (ماه)")
                 ->nullable();
 
-            $table->json("script")
+            $table->date("period_end_date")
+                ->comment("دوره عملیاتی")
+                ->nullable();
+
+            $table->date("year_end_date")
+                ->comment("سال مالی")
                 ->nullable();
 
             $table->unsignedBigInteger("instrument_id")

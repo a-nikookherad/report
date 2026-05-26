@@ -13,51 +13,118 @@ return new class extends Migration {
         Schema::create('cash_flows', function (Blueprint $table) {
             $table->id();
 
-            $table->bigInteger("cash_from_operation")
-                ->comment("نقد حاصل از عمليات")
-                ->nullable();
+            // Operating Activities
+            $table->bigInteger('cash_flow_from_operating_activities')
+                ->nullable()
+                ->comment('نقد حاصل از عمليات');
 
-            $table->bigInteger("cash_from_investing")
-                ->comment("نقد حاصل از فعالیت های سرمایه گذاری")
-                ->nullable();
+            $table->bigInteger('cash_paid_for_income_tax')
+                ->nullable()
+                ->comment('پرداخت‌های نقدی بابت مالیات بر درآمد');
 
+            $table->bigInteger('net_cash_inflow_outflow_from_operating_activities')
+                ->nullable()
+                ->comment('جريان ‌خالص ‌ورود‌ (خروج) ‌نقد حاصل از فعاليت‌هاي ‌عملياتي');
 
+            // Investing Activities
+            $table->bigInteger('cash_received_from_sale_of_property_plant_and_equipment')
+                ->nullable()
+                ->comment('دريافت‌هاي نقدي حاصل از فروش دارايي‌هاي ثابت مشهود');
+            $table->bigInteger('cash_paid_for_purchase_of_property_plant_and_equipment')
+                ->nullable()
+                ->comment('پرداخت‌هاي نقدي براي خريد دارايي‌هاي ثابت مشهود');
+            $table->bigInteger('cash_received_from_sale_of_long_term_investments')
+                ->nullable()
+                ->comment('دريافت‌هاي نقدي حاصل از فروش سرمايه‌گذاري‌هاي بلندمدت');
+            $table->bigInteger('cash_paid_for_acquisition_of_long_term_investments')
+                ->nullable()
+                ->comment('پرداخت‌هاي نقدي براي تحصيل سرمايه‌گذاري‌هاي بلندمدت');
+            $table->bigInteger('cash_received_from_sale_of_short_term_investments')
+                ->nullable()
+                ->comment('دريافت‌هاي نقدي حاصل از فروش سرمايه‌گذاري‌هاي کوتاه‌مدت');
+            $table->bigInteger('cash_paid_for_acquisition_of_short_term_investments')
+                ->nullable()
+                ->comment('پرداخت‌هاي نقدي براي تحصيل سرمايه‌گذاري‌هاي کوتاه‌مدت');
+            $table->bigInteger('cash_received_from_dividends')
+                ->nullable()
+                ->comment('دريافت‌هاي نقدي حاصل از سود‌ سهام');
+            $table->bigInteger('cash_received_from_other_investments')
+                ->nullable()
+                ->comment('دريافت‌هاي نقدي حاصل از سود ساير سرمايه‌گذاري‌ها');
+            $table->bigInteger('net_cash_inflow_outflow_from_investing_activities')
+                ->nullable()
+                ->comment('جريان خالص ورود (خروج) نقد حاصل از فعاليت‌هاي سرمايه‌گذاري');
+            $table->bigInteger('net_cash_before_financing_activities')
+                ->nullable()
+                ->comment('جريان خالص ورود (خروج) نقد قبل از فعاليت‌هاي تامين مالي');
 
-            $table->bigInteger("receipts_from_facilities")
-                ->comment("دريافت‌هاي نقدي حاصل از تسهيلات")
-                ->nullable();
+            // Financing Activities
+            $table->bigInteger('cash_received_from_increase_in_capital')
+                ->nullable()
+                ->comment('دريافت‌هاي نقدي حاصل از افزايش سرمايه');
+            $table->bigInteger('cash_received_from_sale_of_treasury_shares')
+                ->nullable()
+                ->comment('دريافت‌هاي نقدي حاصل از فروش سهام خزانه');
+            $table->bigInteger('cash_paid_for_purchase_of_treasury_shares')
+                ->nullable()
+                ->comment('پرداخت‌هاي نقدي براي خريد سهام خزانه');
+            $table->bigInteger('cash_received_from_facilities')
+                ->nullable()
+                ->comment('دريافت‌هاي نقدي حاصل از تسهيلات');
+            $table->bigInteger('cash_paid_for_principal_of_facilities')
+                ->nullable()
+                ->comment('پرداخت‌هاي نقدي بابت اصل تسهيلات');
+            $table->bigInteger('cash_paid_for_interest_of_facilities')
+                ->nullable()
+                ->comment('پرداخت‌هاي نقدي بابت سود تسهيلات');
+            $table->bigInteger('cash_received_from_bonds_issued')
+                ->nullable()
+                ->comment('دريافت‌هاي نقدي حاصل از انتشار اوراق مشارکت');
+            $table->bigInteger('cash_paid_for_principal_of_bonds')
+                ->nullable()
+                ->comment('پرداخت‌هاي نقدي بابت اصل اوراق مشارکت');
+            $table->bigInteger('cash_paid_for_interest_of_bonds')
+                ->nullable()
+                ->comment('پرداخت‌هاي نقدي بابت سود اوراق مشارکت');
+            $table->bigInteger('cash_paid_for_dividends')
+                ->nullable()
+                ->comment('پرداخت‌هاي نقدي بابت سود سهام');
+            $table->bigInteger('net_cash_inflow_outflow_from_financing_activities')
+                ->nullable()
+                ->comment('جريان خالص ورود (خروج) نقد حاصل از فعاليت‌هاي تامين مالي');
 
-            $table->bigInteger("payments_for_principle_facilities")
-                ->comment("پرداخت‌هاي نقدي بابت اصل تسهيلات")
-                ->nullable();
+            // Other Information
+            $table->string('effect_of_exchange_rate_changes')
+                ->nullable()
+                ->comment('تاثير تغييرات نرخ ارز');
 
-            $table->bigInteger("payments_for_interest_facilities")
-                ->comment("پرداخت‌هاي نقدي بابت سود تسهيلات")
-                ->nullable();
+            $table->bigInteger('net_increase_decrease_in_cash')
+                ->nullable()
+                ->comment('خالص افزايش (کاهش) در موجودي نقد');
+            $table->bigInteger('cash_balance_at_beginning_of_year')
+                ->nullable()
+                ->comment('مانده موجودي نقد در ابتداي سال');
+            $table->bigInteger('cash_balance_at_end_of_year')
+                ->nullable()
+                ->comment('مانده موجودي نقد در پايان سال');
+            $table->bigInteger('non_cash_transactions')
+                ->nullable()
+                ->comment('معاملات غيرنقدي');
 
-            $table->bigInteger("dividend_payments")
-                ->comment("پرداخت‌هاي نقدي بابت سود سهام")
-                ->nullable();
-
-            $table->bigInteger("cash_from_financing")
-                ->comment("نقد حاصل فعالیت های تامین مالی")
-                ->nullable();
-
-
-            $table->bigInteger("foreign_exchange_effect")
-                ->comment("تسعیر ارز")
-                ->nullable();
-
-            $table->bigInteger("net_income_cash")
-                ->comment("خالص افزايش (کاهش) در موجودي نقد")
-                ->nullable();
-
-            $table->enum("order",[
-                1,
-                2,
+            $table->enum("period_order", [
                 3,
-                4
+                6,
+                9,
+                12
             ])
+                ->nullable();
+
+            $table->date("period_end_date")
+                ->comment("دوره عملیاتی")
+                ->nullable();
+
+            $table->date("year_end_date")
+                ->comment("سال مالی")
                 ->nullable();
 
             $table->unsignedBigInteger("instrument_id")
@@ -72,8 +139,6 @@ return new class extends Migration {
                 ->references("id")
                 ->on("financial_periods");
 
-            $table->json("script")
-                ->nullable();
             $table->timestamps();
         });
     }

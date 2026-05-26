@@ -23,6 +23,10 @@ use App\Services\DataExtractors\Activities\ActivityDataExtractor;
 use App\Services\DataExtractors\Activities\ActivityDTO;
 use App\Services\DataExtractors\BalanceSheets\BalanceSheetDataExtractor;
 use App\Services\DataExtractors\BalanceSheets\BalanceSheetDTO;
+use App\Services\DataExtractors\CashFlows\CashFlowDataExtractor;
+use App\Services\DataExtractors\CashFlows\CashFlowDTO;
+use App\Services\DataExtractors\IncomeStatements\IncomeStatementDataExtractor;
+use App\Services\DataExtractors\IncomeStatements\IncomeStatementDTO;
 use App\Tools\Excel\Facades\Excel;
 use App\Tools\PersianDate\PersianDate;
 use Hekmatinasser\Verta\Facades\Verta;
@@ -244,11 +248,11 @@ class InstrumentController extends Controller
 
     private function storeActivityInDatabase(mixed $dataSource, $instrumentInstance)
     {
-        $activityLogic = resolve(ActivityDataExtractor::class, [
+        $activityExtractor = resolve(ActivityDataExtractor::class, [
             "dataSource" => $dataSource
         ]);
 
-        $record = $activityLogic->extract();
+        $record = $activityExtractor->extract();
         $record["instrument_id"] = $instrumentInstance->id;
         $activityDto = ActivityDTO::fromExtractor($record);
         Activity::query()
@@ -262,11 +266,11 @@ class InstrumentController extends Controller
 
     private function storeBalanceSheetInDatabase(mixed $dataSource, $instrumentInstance)
     {
-        $balanceSheetLogic = resolve(BalanceSheetDataExtractor::class, [
+        $balanceSheetExtractor = resolve(BalanceSheetDataExtractor::class, [
             "dataSource" => $dataSource
         ]);
 
-        $record = $balanceSheetLogic->extract();
+        $record = $balanceSheetExtractor->extract();
         $record["instrument_id"] = $instrumentInstance->id;
         $balanceSheetDto = BalanceSheetDTO::fromExtractor($record);
         BalanceSheet::query()
@@ -280,29 +284,42 @@ class InstrumentController extends Controller
 
     private function storeIncomeStatementInDatabase(mixed $dataSource, $instrumentInstance)
     {
-        $incomeStatementLogic = resolve(IncomeStatementDataNormalizeLogic::class, [
+        $incomeStatementExtractor = resolve(IncomeStatementDataExtractor::class, [
             "dataSource" => $dataSource
         ]);
 
-        $record = $incomeStatementLogic->normalize();
+        $record = $incomeStatementExtractor->extract();
         $record["instrument_id"] = $instrumentInstance->id;
+        $incomeStatementDto = IncomeStatementDTO::fromExtractor($record);
+//        dd($incomeStatementDto->toArray());
         IncomeStatement::query()
-            ->updateOrCreate(["instrument_id" => $record["instrument_id"], "financial_period_id" => $record["financial_period_id"], "order" => $record["order"]], $record);
+            ->updateOrCreate([
+                "instrument_id" => $record["instrument_id"],
+                "financial_period_id" => $record["financial_period_id"],
+                "period_order" => $record["period_order"]
+            ], $incomeStatementDto->toArray());
 
-        return $incomeStatementLogic->getData();
+        return $incomeStatementDto->toArray();
     }
 
     private function storeCashFlowInDatabase(mixed $dataSource, $instrumentInstance)
     {
-        $cashFlowLogic = resolve(CashFlowDataNormalizeLogic::class, [
+//        $cashFlowLogic = resolve(CashFlowDataNormalizeLogic::class, [
+        $cashFlowLogic = resolve(CashFlowDataExtractor::class, [
             "dataSource" => $dataSource
         ]);
 
-        $record = $cashFlowLogic->normalize();
+        $record = $cashFlowLogic->extract();
         $record["instrument_id"] = $instrumentInstance->id;
+        $cashFlowDto = CashFlowDTO::fromExtractor($record);
+//        dd($cashFlowDto->toArray());
         CashFlow::query()
-            ->updateOrCreate(["financial_period_id" => $record["financial_period_id"], "order" => $record["order"]], $record);
-        return $cashFlowLogic->getData();
+            ->updateOrCreate([
+                "instrument_id" => $record["instrument_id"],
+                "financial_period_id" => $record["financial_period_id"],
+                "period_order" => $record["period_order"]
+            ], $cashFlowDto->toArray());
+        return $cashFlowDto->toArray();
     }
 
     private function storeEquityInDatabase(mixed $dataSource, $instrumentInstance)
