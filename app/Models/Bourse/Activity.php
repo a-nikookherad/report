@@ -7,19 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Activity extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
-        "this_month_domestic_sales",
-        "total_domestic_sales_for_now",
-        "this_month_export_sales",
-        "total_export_sales_for_now",
-        "this_month_sales",
-        "total_sales_for_now",
-        "average_sales",
-        "predict_year_sales",
+        "energy_cost",
+        "feed_cost",
+        "domestic_sales",
+        "export_sales",
+        "total_sales",
         "order",
-        "script",
+        "period_end_date",
+        "year_end_date",
         "instrument_id",
         "financial_period_id",
     ];
@@ -34,8 +30,9 @@ class Activity extends Model
         return $this->belongsTo(FinancialPeriod::class, "financial_period_id");
     }
 
-    public function analyze()
-    {
-        return $this->hasOne(ActivitiesAnalysis::class, "activity_id");
-    }
+    //todo remove these lines of code
+    /*    public function analyze()
+        {
+            return $this->hasOne(ActivitiesAnalysis::class, "activity_id");
+        }*/
 }

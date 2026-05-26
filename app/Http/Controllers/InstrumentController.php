@@ -20,6 +20,9 @@ use App\Models\Bourse\Industry;
 use App\Models\Bourse\Instrument;
 use App\Repositories\FileSystemRepo\FileSystemRepo;
 use App\Services\DataExtractors\Activities\ActivityDataExtractor;
+use App\Services\DataExtractors\Activities\ActivityDTO;
+use App\Services\DataExtractors\BalanceSheets\BalanceSheetDataExtractor;
+use App\Services\DataExtractors\BalanceSheets\BalanceSheetDTO;
 use App\Tools\Excel\Facades\Excel;
 use App\Tools\PersianDate\PersianDate;
 use Hekmatinasser\Verta\Facades\Verta;
@@ -245,12 +248,34 @@ class InstrumentController extends Controller
             "dataSource" => $dataSource
         ]);
 
-        $record = $activityLogic->normalize();
+        $record = $activityLogic->extract();
         $record["instrument_id"] = $instrumentInstance->id;
+        $activityDto = ActivityDTO::fromExtractor($record);
         Activity::query()
-            ->updateOrCreate(["instrument_id" => $record["instrument_id"], "order" => $record["order"], "financial_period_id" => $record["financial_period_id"]], $record);
-        return $activityLogic->getData();
+            ->updateOrCreate([
+                "instrument_id" => $record["instrument_id"],
+                "order" => $record["order"],
+                "financial_period_id" => $record["financial_period_id"]
+            ], $activityDto->toArray());
+        return $activityDto->toArray();
+    }
 
+    private function storeBalanceSheetInDatabase(mixed $dataSource, $instrumentInstance)
+    {
+        $balanceSheetLogic = resolve(BalanceSheetDataExtractor::class, [
+            "dataSource" => $dataSource
+        ]);
+
+        $record = $balanceSheetLogic->extract();
+        $record["instrument_id"] = $instrumentInstance->id;
+        $balanceSheetDto = BalanceSheetDTO::fromExtractor($record);
+        BalanceSheet::query()
+            ->updateOrCreate([
+                "instrument_id" => $record["instrument_id"],
+                "financial_period_id" => $record["financial_period_id"],
+                "order" => $record["order"]
+            ], $balanceSheetDto->toArray());
+        return $balanceSheetDto->toArray();
     }
 
     private function storeIncomeStatementInDatabase(mixed $dataSource, $instrumentInstance)
@@ -265,19 +290,6 @@ class InstrumentController extends Controller
             ->updateOrCreate(["instrument_id" => $record["instrument_id"], "financial_period_id" => $record["financial_period_id"], "order" => $record["order"]], $record);
 
         return $incomeStatementLogic->getData();
-    }
-
-    private function storeBalanceSheetInDatabase(mixed $dataSource, $instrumentInstance)
-    {
-        $balanceSheetLogic = resolve(BalanceSheetDataNormalizeLogic::class, [
-            "dataSource" => $dataSource
-        ]);
-
-        $record = $balanceSheetLogic->normalize();
-        $record["instrument_id"] = $instrumentInstance->id;
-        BalanceSheet::query()
-            ->updateOrCreate(["instrument_id" => $record["instrument_id"], "financial_period_id" => $record["financial_period_id"], "order" => $record["order"]], $record);
-        return $balanceSheetLogic->getData();
     }
 
     private function storeCashFlowInDatabase(mixed $dataSource, $instrumentInstance)

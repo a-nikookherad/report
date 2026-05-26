@@ -21,6 +21,10 @@ return new class extends Migration {
                 ->comment("دریافتنی های تجاری")
                 ->nullable();
 
+            $table->unsignedBigInteger("trade_and_other_receivables")
+                ->comment("دریافتنی های تجاری و سایر دریافتنی ها")
+                ->nullable();
+
             $table->unsignedBigInteger("total_current_assets")
                 ->comment("جمع دارایی های جاری")
                 ->nullable();
@@ -29,11 +33,11 @@ return new class extends Migration {
                 ->comment("جمع دارایی ها")
                 ->nullable();
 
-            $table->bigInteger("fund")
+            $table->bigInteger("capital")
                 ->comment("سرمایه")
                 ->nullable();
 
-            $table->bigInteger("accumulated_profit")
+            $table->bigInteger("retained_earnings")
                 ->comment("سود انباشته")
                 ->nullable();
 
@@ -53,10 +57,12 @@ return new class extends Migration {
                 ->comment("مجموع بدهی های")
                 ->nullable();
 
-            $table->unsignedSmallInteger("order")
-                ->nullable();
-
-            $table->json("script")
+            $table->enum("order", [
+                3,
+                6,
+                9,
+                12
+            ])
                 ->nullable();
 
             $table->unsignedBigInteger("instrument_id")

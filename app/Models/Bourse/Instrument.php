@@ -17,11 +17,12 @@ class Instrument extends Model
         "mofid_url",
         "industry_id",
         "group_id",
+        "financial_period_id",
     ];
 
     public function financialPeriods()
     {
-        return $this->hasMany(FinancialPeriod::class, "instrument_id");
+        return $this->belongsTo(FinancialPeriod::class, "financial_period_id");
     }
 
     public function industry()
@@ -79,6 +80,6 @@ class Instrument extends Model
     public function lastHistory()
     {
         return $this->hasOne(History::class, "instrument_id")
-            ->orderBy("timestamp","desc");
+            ->orderBy("timestamp", "desc");
     }
 }
