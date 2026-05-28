@@ -7,11 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class Equity extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
-        "order",
-        "script",
+        "declared_dividend",
+        "capital_increase",
+        "increase_in_working_capital",
+        "buy_treasury_stock",
+        "sell_treasury_stock",
+        "allocate_to_legal_reserve",
+        "allocate_to_other_reserves",
+        "period_order",
+        "period_end_date",
+        "year_end_date",
         "instrument_id",
         "financial_period_id",
     ];

@@ -119,11 +119,11 @@ return new class extends Migration {
             ])
                 ->nullable();
 
-            $table->date("period_end_date")
+            $table->string("period_end_date")
                 ->comment("دوره عملیاتی")
                 ->nullable();
 
-            $table->date("year_end_date")
+            $table->string("year_end_date")
                 ->comment("سال مالی")
                 ->nullable();
 
@@ -139,6 +139,11 @@ return new class extends Migration {
                 ->references("id")
                 ->on("financial_periods");
 
+            $table->unique([
+                'instrument_id',
+                'financial_period_id',
+                'period_order'
+            ]);
             $table->timestamps();
         });
     }

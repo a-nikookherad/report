@@ -4,10 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\InstrumentInfoStoreRequest;
 use App\Http\Requests\StoreInstrumentRequest;
-use App\Logics\Bourse\Normalize\BalanceSheetDataNormalizeLogic;
-use App\Logics\Bourse\Normalize\CashFlowDataNormalizeLogic;
-use App\Logics\Bourse\Normalize\EquityDataNormalizeLogic;
-use App\Logics\Bourse\Normalize\IncomeStatementDataNormalizeLogic;
 use App\Models\Bourse\Activity;
 use App\Models\Bourse\BalanceSheet;
 use App\Models\Bourse\CashFlow;
@@ -25,9 +21,10 @@ use App\Services\DataExtractors\BalanceSheets\BalanceSheetDataExtractor;
 use App\Services\DataExtractors\BalanceSheets\BalanceSheetDTO;
 use App\Services\DataExtractors\CashFlows\CashFlowDataExtractor;
 use App\Services\DataExtractors\CashFlows\CashFlowDTO;
+use App\Services\DataExtractors\Equities\EquityDataExtractor;
+use App\Services\DataExtractors\Equities\EquityDTO;
 use App\Services\DataExtractors\IncomeStatements\IncomeStatementDataExtractor;
 use App\Services\DataExtractors\IncomeStatements\IncomeStatementDTO;
-use App\Tools\Excel\Facades\Excel;
 use App\Tools\PersianDate\PersianDate;
 use Hekmatinasser\Verta\Facades\Verta;
 use Illuminate\Support\Facades\Date;
@@ -258,7 +255,7 @@ class InstrumentController extends Controller
         Activity::query()
             ->updateOrCreate([
                 "instrument_id" => $record["instrument_id"],
-                "order" => $record["order"],
+                "period_order" => $record["period_order"],
                 "financial_period_id" => $record["financial_period_id"]
             ], $activityDto->toArray());
         return $activityDto->toArray();
@@ -277,7 +274,7 @@ class InstrumentController extends Controller
             ->updateOrCreate([
                 "instrument_id" => $record["instrument_id"],
                 "financial_period_id" => $record["financial_period_id"],
-                "order" => $record["order"]
+                "period_order" => $record["period_order"]
             ], $balanceSheetDto->toArray());
         return $balanceSheetDto->toArray();
     }
@@ -291,7 +288,6 @@ class InstrumentController extends Controller
         $record = $incomeStatementExtractor->extract();
         $record["instrument_id"] = $instrumentInstance->id;
         $incomeStatementDto = IncomeStatementDTO::fromExtractor($record);
-//        dd($incomeStatementDto->toArray());
         IncomeStatement::query()
             ->updateOrCreate([
                 "instrument_id" => $record["instrument_id"],
@@ -304,7 +300,6 @@ class InstrumentController extends Controller
 
     private function storeCashFlowInDatabase(mixed $dataSource, $instrumentInstance)
     {
-//        $cashFlowLogic = resolve(CashFlowDataNormalizeLogic::class, [
         $cashFlowLogic = resolve(CashFlowDataExtractor::class, [
             "dataSource" => $dataSource
         ]);
@@ -312,26 +307,30 @@ class InstrumentController extends Controller
         $record = $cashFlowLogic->extract();
         $record["instrument_id"] = $instrumentInstance->id;
         $cashFlowDto = CashFlowDTO::fromExtractor($record);
-//        dd($cashFlowDto->toArray());
         CashFlow::query()
             ->updateOrCreate([
-                "instrument_id" => $record["instrument_id"],
-                "financial_period_id" => $record["financial_period_id"],
-                "period_order" => $record["period_order"]
+                'instrument_id' => $record["instrument_id"],
+                'financial_period_id' => $record["financial_period_id"],
+                'period_order' => $record["period_order"]
             ], $cashFlowDto->toArray());
         return $cashFlowDto->toArray();
     }
 
     private function storeEquityInDatabase(mixed $dataSource, $instrumentInstance)
     {
-        $equityLogic = resolve(EquityDataNormalizeLogic::class, [
+        $equityLogic = resolve(EquityDataExtractor::class, [
             "dataSource" => $dataSource
         ]);
 
-        $record = $equityLogic->normalize();
+        $record = $equityLogic->extract();
         $record["instrument_id"] = $instrumentInstance->id;
+        $equityDto = EquityDTO::fromExtractor($record);
         Equity::query()
-            ->updateOrCreate(["instrument_id" => $record["instrument_id"], "financial_period_id" => $record["financial_period_id"], "order" => $record["order"]], $record);
-        return $equityLogic->getData();
+            ->updateOrCreate([
+                "instrument_id" => $record["instrument_id"]
+                , "financial_period_id" => $record["financial_period_id"],
+                "period_order" => $record["period_order"]
+            ], $equityDto->toArray());
+        return $equityDto->toArray();
     }
 }

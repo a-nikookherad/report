@@ -12,7 +12,7 @@ class ActivityDTO
         int    $domesticSales,
         int    $exportSales,
         int    $totalSales,
-        int    $order,
+        string $periodOrder,
         string $periodEndDate,
         string $yearEndDate,
         ?int   $energyCost,
@@ -24,7 +24,7 @@ class ActivityDTO
         $this->data["domestic_sales"] = $domesticSales;
         $this->data["export_sales"] = $exportSales;
         $this->data["total_sales"] = $totalSales;
-        $this->data["order"] = $order;
+        $this->data["period_order"] = $periodOrder;
         $this->data["period_end_date"] = $periodEndDate;
         $this->data["year_end_date"] = $yearEndDate;
         $this->data["energy_cost"] = $energyCost;
@@ -39,7 +39,7 @@ class ActivityDTO
             domesticSales: $records["domestic_sales"],
             exportSales: $records["export_sales"],
             totalSales: $records["total_sales"],
-            order: $records["order"],
+            periodOrder: $records["period_order"],
             periodEndDate: $records["period_end_date"],
             yearEndDate: $records["year_end_date"],
             energyCost: $records["energy_cost"] ?? null,

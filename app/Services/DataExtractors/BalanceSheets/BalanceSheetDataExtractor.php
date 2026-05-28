@@ -99,7 +99,6 @@ class BalanceSheetDataExtractor extends NormalizeAbstract
         //extract table
         $table = $this->filterTableByName(self::TABLE_NAME_EN, self::TABLE_NAME_FA);
 
-//        dd($table);
         //extract cells of tables which we need them
         foreach (self::$fields as $item => $fieldAndUnit) {
             $cel = $table->searchRowSequenceByValue($item)
@@ -112,12 +111,12 @@ class BalanceSheetDataExtractor extends NormalizeAbstract
 
         $this->getPublicData();
         $this->getOrder();
-//        dd("new",$this->response);
         return $this->response;
     }
+
     private function getOrder(): void
     {
-        $this->response["order"] = $this->dataSource["period"];
+        $this->response["period_order"] = (string)$this->dataSource["period"];
     }
 
 }

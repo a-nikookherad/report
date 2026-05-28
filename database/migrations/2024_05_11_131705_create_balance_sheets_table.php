@@ -57,7 +57,7 @@ return new class extends Migration {
                 ->comment("مجموع بدهی های")
                 ->nullable();
 
-            $table->enum("order", [
+            $table->enum("period_order", [
                 3,
                 6,
                 9,
@@ -65,11 +65,11 @@ return new class extends Migration {
             ])
                 ->nullable();
 
-            $table->date("period_end_date")
+            $table->string("period_end_date")
                 ->comment("دوره عملیاتی")
                 ->nullable();
 
-            $table->date("year_end_date")
+            $table->string("year_end_date")
                 ->comment("سال مالی")
                 ->nullable();
 
@@ -85,6 +85,11 @@ return new class extends Migration {
                 ->references("id")
                 ->on("financial_periods");
 
+            $table->unique([
+                'instrument_id',
+                'financial_period_id',
+                'period_order'
+            ],"balance_sheets_instrument_financial_period_order_unique");
             $table->timestamps();
         });
     }

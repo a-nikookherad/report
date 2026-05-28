@@ -33,16 +33,16 @@ return new class extends Migration {
                 ->nullable()
                 ->comment("فروش ماه جاری");
 
-            $table->enum("order", [
+            $table->enum("period_order", [
                 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
             ])
                 ->nullable();
 
-            $table->date("period_end_date")
+            $table->string("period_end_date")
                 ->comment("دوره عملیاتی")
                 ->nullable();
 
-            $table->date("year_end_date")
+            $table->string("year_end_date")
                 ->comment("سال مالی")
                 ->nullable();
 
@@ -57,6 +57,12 @@ return new class extends Migration {
             $table->foreign("financial_period_id")
                 ->references("id")
                 ->on("financial_periods");
+
+            $table->unique([
+                'instrument_id',
+                'financial_period_id',
+                'period_order'
+            ]);
 
             $table->timestamps();
         });

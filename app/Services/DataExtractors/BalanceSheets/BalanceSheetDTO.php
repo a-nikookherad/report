@@ -7,22 +7,28 @@ class BalanceSheetDTO
     private array $data;
 
     public function __construct(
-        int  $financialPeriod_id,
-        int  $instrument_id,
-        ?int $totalNonCurrentAssets,
-        ?int $tradeAndOtherReceivables,
-        ?int $totalCurrentAssets,
-        ?int $totalAssets,
-        ?int $capital,
-        ?int $retainedEarnings,
-        ?int $totalEquity,
-        ?int $totalNonCurrentLiabilities,
-        ?int $totalCurrentLiabilities,
-        ?int $totalLiabilities
+        int    $financialPeriod_id,
+        int    $instrument_id,
+        string $periodOrder,
+        string $periodEndDate,
+        string $yearEndDate,
+        ?int   $totalNonCurrentAssets,
+        ?int   $tradeAndOtherReceivables,
+        ?int   $totalCurrentAssets,
+        ?int   $totalAssets,
+        ?int   $capital,
+        ?int   $retainedEarnings,
+        ?int   $totalEquity,
+        ?int   $totalNonCurrentLiabilities,
+        ?int   $totalCurrentLiabilities,
+        ?int   $totalLiabilities
     )
     {
         $this->data["financial_period_id"] = $financialPeriod_id;
         $this->data["instrument_id"] = $instrument_id;
+        $this->data["period_order"] = $periodOrder;
+        $this->data["period_end_date"] = $periodEndDate;
+        $this->data["year_end_date"] = $yearEndDate;
         $this->data["total_non_current_assets"] = $totalNonCurrentAssets;
         $this->data["trade_and_other_receivables"] = $tradeAndOtherReceivables;
         $this->data["total_current_assets"] = $totalCurrentAssets;
@@ -40,6 +46,9 @@ class BalanceSheetDTO
         return new static(
             financialPeriod_id: $records["financial_period_id"],
             instrument_id: $records["instrument_id"],
+            periodOrder: $records["period_order"] ?? null,
+            periodEndDate: $records["period_end_date"],
+            yearEndDate: $records["year_end_date"],
             totalNonCurrentAssets: $records["total_non_current_assets"] ?? null,
             tradeAndOtherReceivables: $records["trade_and_other_receivables"] ?? null,
             totalCurrentAssets: $records["total_current_assets"] ?? null,

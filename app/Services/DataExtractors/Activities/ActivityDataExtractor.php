@@ -12,19 +12,20 @@ class ActivityDataExtractor extends NormalizeAbstract
     private const TABLE_NAME_EN = "Production and sales";
     private const TABLE_NAME_FA = "تولید و فروش";
     private const COLUMN_SEQUENCE = 17;
+    private const UNIT = 100000;
     private static array $fields = [
 //        "جمع کل"=>1,
         "جمع فروش داخلی" => [
             "domestic_sales",
-            100000
+            self::UNIT
         ],
         "جمع فروش صادراتی" => [
             "export_sales",
-            100000
+            self::UNIT
         ],
         "جمع" => [
             "total_sales",
-            100000
+            self::UNIT
         ]
     ];
 
@@ -57,6 +58,6 @@ class ActivityDataExtractor extends NormalizeAbstract
     {
         $period = (int)PersianDate::gregorianToSolar($this->dataSource["periodEndToDate"], "m");
         $year = (int)PersianDate::gregorianToSolar($this->dataSource["yearEndToDate"], "m");
-        $this->response["order"] = 12 - ($year - $period);
+        $this->response["period_order"] = (string)(12 - ($year - $period));
     }
 }

@@ -62,15 +62,15 @@ return new class extends Migration {
                 ->nullable();
 
             $table->bigInteger("prior_years_tax")
-            ->comment("بدهی مالیات سنوات قبل")
+                ->comment("بدهی مالیات سنوات قبل")
                 ->nullable();
 
             $table->bigInteger("net_profit_loss_from_continuing_operations")
-            ->comment("سود(زیان) خالص عملیات مستمر")
+                ->comment("سود(زیان) خالص عملیات مستمر")
                 ->nullable();
 
             $table->bigInteger("net_profit_loss")
-            ->comment("سود خالص")
+                ->comment("سود خالص")
                 ->nullable();
 
             $table->bigInteger("capital")
@@ -86,11 +86,11 @@ return new class extends Migration {
                 ->comment("دوره گزارش‌دهی (ماه)")
                 ->nullable();
 
-            $table->date("period_end_date")
+            $table->string("period_end_date")
                 ->comment("دوره عملیاتی")
                 ->nullable();
 
-            $table->date("year_end_date")
+            $table->string("year_end_date")
                 ->comment("سال مالی")
                 ->nullable();
 
@@ -106,6 +106,11 @@ return new class extends Migration {
                 ->references("id")
                 ->on("financial_periods");
 
+            $table->unique([
+                'instrument_id',
+                'financial_period_id',
+                'period_order'
+            ]);
             $table->timestamps();
         });
     }

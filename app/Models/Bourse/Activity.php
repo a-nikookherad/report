@@ -13,7 +13,7 @@ class Activity extends Model
         "domestic_sales",
         "export_sales",
         "total_sales",
-        "order",
+        "period_order",
         "period_end_date",
         "year_end_date",
         "instrument_id",

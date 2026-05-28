@@ -11,7 +11,7 @@ use League\Container\Exception\NotFoundException;
 abstract class NormalizeAbstract
 {
     protected array $dataSource;
-    private collection $cells;
+    protected collection $cells;
     private int $rowSequence;
     protected array $response = [];
 
@@ -50,8 +50,8 @@ abstract class NormalizeAbstract
 
     protected function getPublicData(): void
     {
-        $this->response["period_end_date"] = $this->dataSource["periodEndToDate"];
-        $this->response["year_end_date"] = $this->dataSource["yearEndToDate"];
+        $this->response["period_end_date"] = PersianDate::gregorianToSolar($this->dataSource["periodEndToDate"]);
+        $this->response["year_end_date"] = PersianDate::gregorianToSolar($this->dataSource["yearEndToDate"]);
         $this->response["financial_period_id"] = $this->getFinancialPeriodId();
     }
 

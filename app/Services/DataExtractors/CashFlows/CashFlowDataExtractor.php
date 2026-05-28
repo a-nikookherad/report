@@ -190,6 +190,6 @@ class CashFlowDataExtractor extends NormalizeAbstract
 
     private function getOrder(): void
     {
-        $this->response["period_order"] = $this->dataSource["period"];
+        $this->response["period_order"] = (string)$this->dataSource["period"];
     }
 }
