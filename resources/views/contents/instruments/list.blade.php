@@ -30,7 +30,7 @@
                                     <td>{{$instrument->industry->name}}</td>
                                     <td>{{$instrument->description}}</td>
                                     <td>
-                                        <a href="{{route("instrument.ratio",["instrument_id"=>$instrument->id])}}">
+                                        <a href="{{route("instrument.ratio",["instrument"=>$instrument->id])}}">
                                             <button type="button" class="btn btn-square btn-outline-info m-2"><i
                                                     class="fa fa-chart-area"></i></button>
                                         </a>

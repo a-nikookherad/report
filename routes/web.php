@@ -30,7 +30,7 @@ Route::group([
     Route::post('/instruments/add/info', [\App\Http\Controllers\InstrumentController::class, "storeInfo"])
         ->name("instrument.add.info.store");
 
-    Route::get('/instruments/{instrument_id}/ratio', [\App\Http\Controllers\InstrumentController::class, "ratio"])
+    Route::get('/instruments/{instrument}/ratio', [\App\Http\Controllers\RatioController::class, "show"])
         ->name("instrument.ratio");
 
     Route::get('/instruments/{instrument_id}/history', [\App\Http\Controllers\InstrumentController::class, "updateHistory"])

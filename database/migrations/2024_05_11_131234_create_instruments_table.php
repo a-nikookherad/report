@@ -25,6 +25,9 @@ return new class extends Migration {
             $table->string("mofid_url")
                 ->nullable();
 
+            $table->string("tse_tmc_code")
+                ->nullable();
+
             $table->string("financial_year")
                 ->comment("m-d سال مالی")
                 ->nullable();

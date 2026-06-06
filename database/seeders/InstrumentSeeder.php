@@ -22,6 +22,7 @@ class InstrumentSeeder extends Seeder
                 "slug" => "folad",
                 "symbol" => "فولاد",
                 "mofid_url" => "symbol=IRO1FOLD0001%3A1&countback=388",
+                "tse_tmc_code" => "",
                 "financial_period" => "1390-12-29",
                 "group_id" => Group::where("name", "فلزات اساسی")->first()->id ?? null,
                 "industry_id" => Industry::where("name", "فلزات اساسی")->first()->id ?? null,
@@ -31,6 +32,7 @@ class InstrumentSeeder extends Seeder
                 "name" => "پویا زرکان آق دره",
                 "slug" => "fazar",
                 "symbol" => "فزر",
+                "tse_tmc_code" => "",
                 "financial_period" => "1398-09-30",
                 "group_id" => null,
                 "industry_id" => Industry::where("name", "استخراج کانه های فلزی")->first()->id,
@@ -41,6 +43,7 @@ class InstrumentSeeder extends Seeder
                 "slug" => "fameli",
                 "symbol" => "فملی",
                 "mofid_url" => "Request URL: https://api-mts.orbis.easytrader.ir/chart/api/datafeed/history?symbol=IRO1MSMI0001%3A1&resolution=1D&from=1645142400&to=1716163200&countback=588",
+                "tse_tmc_code" => "-12-29",
                 "financial_period" => "1390-12-29",
                 "group_id" => Group::where("name", "فلزات اساسی")->first()->id,
                 "industry_id" => Industry::where("name", "فلزات اساسی")->first()->id,
@@ -50,6 +53,7 @@ class InstrumentSeeder extends Seeder
                 "name" => "ایران خودرو دیزل",
                 "slug" => "khavar",
                 "symbol" => "خاور",
+                "tse_tmc_code" => "",
                 "financial_period" => "1390-12-29",
                 "group_id" => null,
                 "industry_id" => Industry::where("name", "سایر صنایع")->first()->id,
@@ -59,6 +63,7 @@ class InstrumentSeeder extends Seeder
                 "name" => "مس شهید باهنر",
                 "slug" => "fabahonar",
                 "symbol" => "فباهنر",
+                "tse_tmc_code" => "",
                 "financial_period" => "1390-12-29",
                 "group_id" => Group::where("name", "فلزات اساسی")->first()->id,
                 "industry_id" => Industry::where("name", "فلزات اساسی")->first()->id,
@@ -68,6 +73,7 @@ class InstrumentSeeder extends Seeder
                 "name" => "پارس فولاد سبزوار",
                 "slug" => "fesabzevar",
                 "symbol" => "فسبزوار",
+                "tse_tmc_code" => "",
                 "financial_period" => "1390-09-30",
                 "group_id" => Group::where("name", "فلزات اساسی")->first()->id,
                 "industry_id" => Industry::where("name", "فلزات اساسی")->first()->id,
@@ -77,10 +83,21 @@ class InstrumentSeeder extends Seeder
                 "name" => "فولاد هرمزگان جنوب",
                 "slug" => "hormoz",
                 "symbol" => "هرمز",
+                "tse_tmc_code" => "",
                 "financial_period" => "1390-12-29",
                 "group_id" => Group::where("name", "فلزات اساسی")->first()->id,
                 "industry_id" => Industry::where("name", "فلزات اساسی")->first()->id,
                 "description" => "",
+            ],
+            [
+                "name" => "سیمان ساوه",
+                "slug" => "saveh",
+                "symbol" => "ساوه",
+                "tse_tmc_code" => "32347247706508046",
+                "financial_period" => "1404-12-29",   // سال مالی معمول شرکت
+                "group_id" => Group::where("name", "سیمان، آهک و گچ")->first()->id,
+                "industry_id" => Industry::where("name", "سیمان")->first()->id,
+                "description" => "شرکت سیمان ساوه",
             ],
         ];
 
@@ -110,11 +127,9 @@ class InstrumentSeeder extends Seeder
                     "solar_end_date" => $endSolar,
                     "start_date" => Verta::parse($startSolar)->datetime()->format("Y-m-d"),
                     "end_date" => Verta::parse($endSolar)->datetime()->format("Y-m-d"),
-                    "share_count" => null,
-                    "instrument_id" => $instrumentInstance->id,
                 ];
                 FinancialPeriod::query()
-                    ->updateOrCreate(["solar_end_date" => $date["solar_end_date"], "instrument_id" => $date["instrument_id"]], $date);
+                    ->updateOrCreate(["start_date" => $date["start_date"], "end_date" => $date["end_date"]], $date);
             }
         }
     }

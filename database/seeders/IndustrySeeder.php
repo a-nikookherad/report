@@ -30,6 +30,10 @@ class IndustrySeeder extends Seeder
                 "description" => "",
             ],
             [
+                "name" => "سیمان",
+                "description" => "صنعت سیمان",
+            ],
+            [
                 "name" => "سایر صنایع",
                 "description" => "",
             ],

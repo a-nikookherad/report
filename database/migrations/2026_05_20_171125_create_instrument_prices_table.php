@@ -20,13 +20,21 @@ return new class extends Migration {
                 ->nullable();
             $table->integer("close")
                 ->nullable();
+
             $table->string("tarikh")->nullable();
 
             $table->dateTime("date_time")
                 ->nullable()
                 ->index("instrument_price_date_time_index");
+
             $table->unsignedBigInteger("timestamp")
                 ->index("instrument_price_timestamp_index");
+
+            $table->unsignedBigInteger("instrument_id")
+                ->index();
+            $table->foreign("instrument_id")
+                ->references("id")
+                ->on("instruments");
             $table->timestamps();
         });
     }

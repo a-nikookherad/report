@@ -29,6 +29,7 @@ return new class extends Migration {
             $table->unsignedBigInteger("share_count_after")
                 ->comment("تعداد سهام بعد از افزایش سرمایه")
                 ->nullable();
+
             $table->enum("status", [
                 "pending",
                 "complete"
@@ -40,6 +41,12 @@ return new class extends Migration {
             $table->foreign("financial_period_id")
                 ->references("id")
                 ->on("financial_periods");
+
+            $table->unsignedBigInteger("instrument_id")
+                ->index();
+            $table->foreign("instrument_id")
+                ->references("id")
+                ->on("instruments");
             $table->timestamps();
         });
     }

@@ -25,6 +25,10 @@ class GroupSeeder extends Seeder
                 "name" => "کانه های فلزی",
                 "description" => "گروه کانه های فلزی",
             ],
+            [
+                "name" => "سیمان، آهک و گچ",
+                "description" => "گروه سیمان، آهک و گچ",
+            ],
         ];
 
         foreach ($groups as $group) {

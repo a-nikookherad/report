@@ -15,6 +15,7 @@ class Instrument extends Model
         "slug",
         "description",
         "mofid_url",
+        "tse_tmc_code",
         "industry_id",
         "group_id",
         "financial_period_id",
@@ -62,24 +63,29 @@ class Instrument extends Model
         return $this->hasMany(CashFlow::class, "instrument_id");
     }
 
+    public function equities()
+    {
+        return $this->hasMany(Equity::class, "instrument_id");
+    }
+
     public function activities()
     {
         return $this->hasMany(Activity::class, "instrument_id");
     }
 
-    public function ratios()
+    public function capitalIncreases()
     {
-        return $this->hasMany(Ratio::class, "instrument_id");
+        return $this->hasMany(CapitalIncrease::class, "instrument_id");
     }
 
-    public function histories()
+    public function prices()
     {
-        return $this->hasMany(History::class, "instrument_id");
+        return $this->hasMany(InstrumentPrice::class, "instrument_id");
     }
 
-    public function lastHistory()
+    public function lastPrice()
     {
-        return $this->hasOne(History::class, "instrument_id")
+        return $this->hasOne(InstrumentPrice::class, "instrument_id")
             ->orderBy("timestamp", "desc");
     }
 }
