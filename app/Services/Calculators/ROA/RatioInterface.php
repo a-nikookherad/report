@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Utilities\Ratios;
+namespace App\Services\Calculators\ROA;
 
 use App\Models\Bourse\Instrument;
 
