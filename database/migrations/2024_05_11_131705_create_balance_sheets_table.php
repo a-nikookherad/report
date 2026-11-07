@@ -89,7 +89,7 @@ return new class extends Migration {
                 'instrument_id',
                 'financial_period_id',
                 'period_order'
-            ],"balance_sheets_instrument_financial_period_order_unique");
+            ],"balance_sheets_unique_key");
             $table->timestamps();
         });
     }

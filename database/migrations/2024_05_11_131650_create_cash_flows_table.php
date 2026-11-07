@@ -143,7 +143,7 @@ return new class extends Migration {
                 'instrument_id',
                 'financial_period_id',
                 'period_order'
-            ]);
+            ],"cash_flows_unique_key");
             $table->timestamps();
         });
     }

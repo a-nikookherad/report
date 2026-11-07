@@ -75,7 +75,7 @@ return new class extends Migration {
                 'instrument_id',
                 'financial_period_id',
                 'period_order'
-            ]);
+            ],"equities_unique_key");
             $table->timestamps();
         });
     }

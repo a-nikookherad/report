@@ -18,11 +18,12 @@
                         <div class="form-floating mb-3">
                             <select class="form-select" id="financial_report_type" name="financial_report_type"
                                     aria-label="select type">
+                                <option value="financial_statements">صورت های مالی</option>
                                 <option value="activity" selected>فعالیت</option>
-                                <option value="balance_sheet">صورت وضعیت مالی</option>
-                                <option value="income_statement">صورت سود و زیان</option>
-                                <option value="cash_flow">صورت جریان های نقدی</option>
-                                <option value="changes_in_property_rights">صورت حقوق مالکانه</option>
+                                <option value="balance_sheet">وضعیت مالی</option>
+                                <option value="income_statement">سود و زیان</option>
+                                <option value="cash_flow">جریان های نقدی</option>
+                                <option value="changes_in_property_rights">حقوق مالکانه</option>
                             </select>
                             <label for="financial_report_type">Select financial report type</label>
                         </div>
@@ -33,11 +34,6 @@
                                    aria-describedby="instrument_url" value="{{old("instrument_url")}}">
                             <div id="instrument_url" class="form-text">please enter instrument web url
                             </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="instrument_file" class="form-label">Insert instrument xlsx file</label>
-                            <input class="form-control bg-dark" type="file" id="instrument_file">
                         </div>
 
                         <div class="form-floating mb-3">
@@ -62,12 +58,16 @@
                 // Serialize the form data
                 let form = $('#add_instrument_info_form')[0];
                 let formData = new FormData(form);
-                eval(formData.get("instrument_json"));
+                let instrument_json = null;
+                if (formData.get("instrument_json")) {
+                    eval(formData.get("instrument_json"));
+                    instrument_json = JSON.stringify(datasource);
+                }
                 formData = {
                     instrument_id: formData.get("instrument_id"),
                     financial_report_type: formData.get("financial_report_type"),
                     instrument_url: formData.get("instrument_url"),
-                    instrument_json: JSON.stringify(datasource),
+                    instrument_json: instrument_json,
                     _token: formData.get("_token"),
                 }
                 console.log(formData)

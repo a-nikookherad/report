@@ -30,6 +30,8 @@ use Hekmatinasser\Verta\Facades\Verta;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\File;
 
 class InstrumentController extends Controller
 {
@@ -158,6 +160,12 @@ class InstrumentController extends Controller
 
     public function storeInfo(InstrumentInfoStoreRequest $request)
     {
+        //Get instrument
+        $instrumentInstance = Instrument::query()
+            ->where("id", $request->instrument_id)
+            ->with("financialPeriods")
+            ->first();
+
         if ($request->instrument_json) {
             $dataSource = json_decode($request->instrument_json, true);
 
@@ -169,12 +177,6 @@ class InstrumentController extends Controller
                 ], 400);
             }
 
-            //Get instrument
-            $instrumentInstance = Instrument::query()
-                ->where("id", $request->instrument_id)
-                ->with("financialPeriods")
-                ->first();
-
             $date = PersianDate::gregorianToSolar($dataSource["periodEndToDate"]);
 
             //Make related folder if not exists
@@ -184,8 +186,8 @@ class InstrumentController extends Controller
             FileSystemRepo::storeJson($jsonFilePath, $dataSource, $jsonFileName);
 
             //Make xlsx file
-            $xlsxFilePath = $filePath . "/xlsx/" . $request->financial_report_type;
-            $xlsxFileName = $xlsxFilePath . "/" . $date . ".xlsx";
+/*            $xlsxFilePath = $filePath . "/xlsx/" . $request->financial_report_type;
+            $xlsxFileName = $xlsxFilePath . "/" . $date . ".xlsx";*/
 
             if ($request->financial_report_type == "activity") {
                 $data = $this->storeActivityInDatabase($dataSource, $instrumentInstance);
@@ -201,8 +203,10 @@ class InstrumentController extends Controller
 
             if (!empty($data)) {
                 //Excel::write($xlsxFilePath, $data);
-                FileSystemRepo::storeXlsx($xlsxFilePath, $data, $xlsxFileName);
+//                FileSystemRepo::storeXlsx($xlsxFilePath, $data, $xlsxFileName);
             }
+        } elseif ($request->financial_report_type === "financial_statements") {
+
         }
         return response()->json([
             "message" => "information insert successfully",

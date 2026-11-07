@@ -104,8 +104,8 @@ class InstrumentSeeder extends Seeder
         foreach ($instruments as $instrument) {
             $financialFolder = config("financial.folder") . DIRECTORY_SEPARATOR . $instrument["slug"];
             if (!file_exists(storage_path($financialFolder))) {
-                mkdir(storage_path($financialFolder . DIRECTORY_SEPARATOR . "json"), "0777", true);
-                mkdir(storage_path($financialFolder . DIRECTORY_SEPARATOR . "xlsx"), "0777", true);
+                mkdir(storage_path($financialFolder . DIRECTORY_SEPARATOR . "json"), 0775, true);
+                mkdir(storage_path($financialFolder . DIRECTORY_SEPARATOR . "xlsx"), 0775, true);
             }
             $financialPeriod = $instrument["financial_period"];
             unset($instrument["financial_period"]);

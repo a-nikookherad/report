@@ -42,7 +42,7 @@ return [
     | Token for get history of instruments
     |
     */
-    'mofid_token' => env('mofid_token'),
+    'mofid_token' => env('MOFID_TOKEN'),
     'mofid_url' => env('mofid_url', "https://api-mts.orbis.easytrader.ir/chart/api/datafeed/history"),
 
     /*
