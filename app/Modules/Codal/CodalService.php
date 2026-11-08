@@ -3,50 +3,45 @@
 namespace App\Modules\Codal;
 
 
+use App\Modules\Codal\Contracts\CrawlerClientInterface;
+use App\Modules\Codal\Contracts\DataSourceExtractorInterface;
+use App\Modules\Codal\Exceptions\FailedExtractException;
+use App\Modules\Codal\PersistenceServices\StorableInterface;
+use App\Modules\Codal\Services\FinancialStatementDetector;
+use App\Modules\Codal\Services\Manifest;
+use App\Modules\Codal\Services\SheetIdResolver;
+use App\Modules\Codal\Services\UrlParser;
+use App\Modules\Codal\Services\Utilities;
 use Illuminate\Support\Facades\File;
 
 class CodalService
 {
-    private function getCrawler(): CrawlerClientInterface
+    public function __construct(
+        private readonly Manifest $manifest,
+        private readonly UrlParser $urlParser,
+        private readonly SheetIdResolver $sheetIdResolver,
+        private readonly CrawlerClientInterface $crawler,
+        private readonly DataSourceExtractorInterface $dataSourceExtractor,
+        private readonly FinancialStatementDetector $financialStatementDetector,
+        private readonly Utilities $utilities,
+        private readonly array $persistences
+    )
     {
-        return resolve(CrawlerClientInterface::class);
+
     }
 
-    private function getUrlParser(string $url): UrlParser
+    public function import(string $url, string $symbol, ?bool $force, ?string $sheetId): bool
     {
-        return resolve(UrlParser::class, [$url]);
-    }
+        $symbol = $this->utilities->normalizeSymbol($symbol);
 
-    private function getSheetResolver(): SheetIdResolver
-    {
-        return resolve(SheetIdResolver::class);
-    }
+        $letterSerial = $this->urlParser->getLetterSerial();
+        $queryParams = $this->urlParser->getQueryParams();
 
-    private function getManifest(): Manifest
-    {
-        return resolve(Manifest::class);
-    }
+        $selectedSheetIds = $this->sheetIdResolver->resolve($sheetId);
 
-    private function getExtractor(): Extractor
-    {
-        return resolve(Extractor::class);
-    }
-
-    public function import(string $url, string $symbol, ?bool $force, ?string $sheetId)
-    {
-        $symbolOverride = trim($symbol);
-
-        $urlParser = $this->getUrlParser($url);
-        $letterSerial = $urlParser->getLetterSerial();
-        $queryParams = $urlParser->getQueryParams();
-
-        $sheetResolver = $this->getSheetResolver();
-        $selectedSheetIds = $sheetResolver->resolve($sheetId);
-
-        $manifest = $this->getManifest();
-        $manifestPath = $manifest->getManifestPath($letterSerial);
-        $metadata = $manifest->loadManifest($manifestPath);
-//        $metadata = $manifest;
+        $manifestPath = $this->manifest->getManifestPath($letterSerial);
+        $manifest = $this->manifest->loadManifest($manifestPath);
+        $metadata = $manifest;
 
         /*
          * If metadata is already available, we can determine
@@ -54,13 +49,8 @@ class CodalService
          */
         if ($metadata !== null) {
             //Using local manifest.
-            $symbol = $symbolOverride !== ''
-                ? $this->normalizeSymbol($symbolOverride)
-                : "unknown";
-
-            $periodEndDate = $metadata['periodEndDate'];
+            $periodEndDate = $this->utilities->dateNormalize($metadata['periodEndDate']);
         } else {
-            $symbol = null;
             $periodEndDate = null;
         }
 
@@ -73,23 +63,14 @@ class CodalService
             $metadata !== null
             && !$force
         ) {
-            $directory = $manifest->getOutputDirectory(
+            $directory = $this->manifest->getOutputDirectory(
                 $symbol,
                 $periodEndDate
             );
-
-            $pendingSheetIds = array_values(
-                array_filter(
-                    $selectedSheetIds,
-                    fn(string $id) => !File::exists(
-                        "{$directory}/" . SheetIdResolver::STATEMENTS[$id] . '.json'
-                    )
-                )
-            );
+            $pendingSheetIds = $this->manifest->getPendingSheetIds($selectedSheetIds, $directory);
 
             if (empty($pendingSheetIds)) {
-                /*'All requested JSON files already exist. '
-                . 'No request sent to Codal.'*/
+                /*'All requested JSON files already exist. No request sent to Codal.'*/
                 return true;
             }
         }
@@ -99,80 +80,48 @@ class CodalService
          * statement to discover symbol and reporting date.
          */
         $firstResponseHtml = null;
-        $extractor = $this->getExtractor();
-        $crawler = $this->getCrawler();
 
         if ($metadata === null) {
             $firstSheetId = $pendingSheetIds[0];
 
             //"Fetching initial metadata using sheetId={$firstSheetId}"
-            $firstResponseHtml = $crawler->crawl(
+            $firstResponseHtml = $this->crawler->crawl(
                 $url,
                 $queryParams,
                 $firstSheetId
             );
 
-            $metadata = $extractor->extractMetadata(
+            $metadata = $this->dataSourceExtractor->extractMetadata(
                 $firstResponseHtml,
-                $symbolOverride
+                $symbol
             );
 
             if ($metadata === null) {
                 throw new FailedExtractException("Could not extract symbol or reporting date from Codal.");
             }
 
-            $symbol = $symbolOverride !== ''
-                ? $this->normalizeSymbol($symbolOverride)
-                : $this->normalizeSymbol($metadata['rawSymbol']);
+            $symbol = $symbol !== ''
+                ? $symbol
+                : $this->utilities->normalizeSymbol($metadata['rawSymbol']);
 
             $periodEndDate = $metadata['periodEndDate'];
 
-            $manifest = [
-                'letterSerial' => $letterSerial,
-                'symbol' => $symbol,
-                'rawSymbol' => $metadata['rawSymbol'],
-                'periodEndDate' => $periodEndDate,
-                'createdAt' => now()->toIso8601String(),
-            ];
-
-            File::ensureDirectoryExists(
-                dirname($manifestPath)
-            );
-
-            File::put(
-                $manifestPath,
-                json_encode(
-                    $manifest,
-                    JSON_PRETTY_PRINT
-                    | JSON_UNESCAPED_UNICODE
-                    | JSON_UNESCAPED_SLASHES
-                )
-            );
+            $manifest = $this->manifest->storeManifest($letterSerial, $symbol, $metadata['rawSymbol'], $periodEndDate, $manifestPath);
 
         }
+
 
         /*
          * If the user supplied a symbol override, persist it.
          */
         if (
             $metadata !== null
-            && $symbolOverride !== ''
             && $manifest !== null
         ) {
-            $manifest['symbol'] = $symbol;
-
-            File::put(
-                $manifestPath,
-                json_encode(
-                    $manifest,
-                    JSON_PRETTY_PRINT
-                    | JSON_UNESCAPED_UNICODE
-                    | JSON_UNESCAPED_SLASHES
-                )
-            );
+            $this->manifest->storeManifest($manifest['letterSerial'], $symbol, $manifest['rawSymbol'], $manifest['periodEndDate'], $manifestPath);
         }
 
-        $outputDirectory = $manifest->getOutputDirectory(
+        $outputDirectory = $this->manifest->getOutputDirectory(
             $symbol,
             $periodEndDate
         );
@@ -205,14 +154,14 @@ class CodalService
 
                 $firstResponseHtml = null;
             } else {
-                $html = $crawler->requestStatement(
+                $html = $this->crawler->requestStatement(
                     $url,
                     $queryParams,
                     $currentSheetId
                 );
             }
 
-            $datasource = $extractor->extractDatasource($html);
+            $datasource = $this->dataSourceExtractor->extractDatasource($html);
 
             if ($datasource === null) {
                 //Datasource extraction failed for sheetId={$currentSheetId}.
@@ -241,6 +190,7 @@ class CodalService
                 );
             }
 
+            $this->extractorDetector($datasource);
             //Saved: {$fileName}
         }
 
@@ -249,23 +199,19 @@ class CodalService
         return true;
     }
 
-    private function store()
+    private function extractorDetector(array $datasource)
     {
-
+        $title = $datasource["sheets"][0]["title_En"] ?? "unknown";
+        $service = $this->financialStatementDetector->detect($title, $datasource);
+        $record = $service->extract();
+        $DTO = $service->getDTO();
+        $this->persist($DTO);
     }
 
-    private function normalizeSymbol(string $symbol): string
+    private function persist(StorableInterface $storableDTO)
     {
-        $symbol = trim($symbol);
-
-        $symbol = str_replace(
-            [' ', '-', '/', '\\'],
-            '_',
-            $symbol
-        );
-
-        $symbol = preg_replace('/_+/', '_', $symbol);
-
-        return trim($symbol, '_');
+        foreach ($this->persistences as $item) {
+            $item->persist($storableDTO);
+        }
     }
 }

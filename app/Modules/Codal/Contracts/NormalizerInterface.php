@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Codal;
+namespace App\Modules\Codal\Contracts;
 
 interface NormalizerInterface
 {

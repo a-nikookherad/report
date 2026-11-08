@@ -6,7 +6,7 @@ use App\Models\Bourse\FinancialPeriod;
 use App\Tools\PersianDate\PersianDate;
 use Hekmatinasser\Verta\Facades\Verta;
 use Illuminate\Support\Collection;
-use League\Container\Exception\NotFoundException;
+use function collect;
 
 abstract class NormalizeAbstract
 {

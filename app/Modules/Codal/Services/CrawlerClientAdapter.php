@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Modules\Codal;
+namespace App\Modules\Codal\Services;
 
+use App\Modules\Codal\Contracts\CrawlerClientInterface;
 use GuzzleHttp\Client;
 use Psr\Http\Message\ResponseInterface;
 

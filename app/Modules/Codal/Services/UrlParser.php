@@ -1,6 +1,9 @@
 <?php
 
-namespace App\Modules\Codal;
+namespace App\Modules\Codal\Services;
+
+use App\Modules\Codal\Exceptions\InvalidCodalUrlException;
+use function App\Modules\Codal\str_ends_with;
 
 class UrlParser
 {

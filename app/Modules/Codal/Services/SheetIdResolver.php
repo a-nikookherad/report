@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Modules\Codal;
+namespace App\Modules\Codal\Services;
+
+use App\Modules\Codal\Exceptions\InvalidSheetIdException;
 
 class SheetIdResolver
 {

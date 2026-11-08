@@ -1,12 +1,16 @@
 <?php
 
-namespace App\Modules\Codal;
+namespace App\Modules\Codal\Services;
 
-class Extractor
+use App\Modules\Codal\Contracts\DataSourceExtractorInterface;
+use App\Modules\Codal\DOMDocument;
+use App\Modules\Codal\DOMXPath;
+
+class DataSourceExtractorV1 implements DataSourceExtractorInterface
 {
     public function extractMetadata(
         string $html,
-        string $symbolOverride = ''
+        string $symbol = ''
     ): ?array
     {
         $datasource = $this->extractDatasource($html);
@@ -23,17 +27,8 @@ class Extractor
             return null;
         }
 
-        $symbol = trim($symbolOverride);
-
         if ($symbol === '') {
-            $dom = $this->createDom($html);
-            $xpath = new DOMXPath($dom);
-
-            $symbol = trim(
-                $xpath->evaluate(
-                    'string(//*[@id="ctl00_lblDisplaySymbol"])'
-                )
-            );
+            $symbol = $this->extractSymbolFromCodal($html);
         }
 
         if ($symbol === '') {
@@ -180,5 +175,18 @@ class Extractor
         libxml_use_internal_errors($previousState);
 
         return $dom;
+    }
+
+    private function extractSymbolFromCodal(string $html): string
+    {
+        $dom = $this->createDom($html);
+        $xpath = new DOMXPath($dom);
+
+        $symbol = trim(
+            $xpath->evaluate(
+                'string(//*[@id="ctl00_lblDisplaySymbol"])'
+            )
+        );
+        return $symbol;
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Services\DataExtractors\BalanceSheets;
 
 use App\Services\DataExtractors\NormalizeAbstract;
-use App\Tools\PersianDate\PersianDate;
 
 class BalanceSheetDataExtractor extends NormalizeAbstract
 {

@@ -30,8 +30,6 @@ use Hekmatinasser\Verta\Facades\Verta;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\File;
 
 class InstrumentController extends Controller
 {
@@ -186,8 +184,8 @@ class InstrumentController extends Controller
             FileSystemRepo::storeJson($jsonFilePath, $dataSource, $jsonFileName);
 
             //Make xlsx file
-/*            $xlsxFilePath = $filePath . "/xlsx/" . $request->financial_report_type;
-            $xlsxFileName = $xlsxFilePath . "/" . $date . ".xlsx";*/
+            /*            $xlsxFilePath = $filePath . "/xlsx/" . $request->financial_report_type;
+                        $xlsxFileName = $xlsxFilePath . "/" . $date . ".xlsx";*/
 
             if ($request->financial_report_type == "activity") {
                 $data = $this->storeActivityInDatabase($dataSource, $instrumentInstance);
